@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BhashaConvert · Translating Prototype (Working)</title>
+  <!-- Tailwind CSS -->
+  <link rel="stylesheet" href="src/styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui"] },
+          colors: { neon: { 500: '#6ef3ff' }, accent: { 600: '#8b5cf6' } }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- External libs (free, client-side) -->
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
+  <style>
+    .nav-active { border-bottom: 3px solid #8b5cf6; color: #8b5cf6; }
+    .nav-btn { border-bottom: 3px solid transparent; transition: color .2s, border-color .2s; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .glass {
+      background: rgba(255,255,255,.09);
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    }
+    .rounded-xl { border-radius: 1rem; }
+    .input, .btn, .btn-primary {
+      border-radius: 6px;
+      border: none;
+    }
+    .input { padding: 8px; background: #0f183a; color: #fff; width: 100%; }
+    .btn { background: #242b49; color: #fff; padding: 7px 18px; cursor: pointer; }
+    .btn-primary { background: #8b5cf6; color: #fff; padding: 7px 18px; cursor: pointer; }
+    .btn:hover { background: #444b69; }
+    .btn-primary:hover { background: #6ef3ff; color: #071029; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#071029] text-white font-sans p-0">
+  <div class="max-w-6xl mx-auto px-4 pt-8 pb-6">
+    <header class="mb-8 flex items-center justify-between">
+      <h1 class="text-3xl font-bold tracking-tight">Bhasha-Converter <span class="text-accent-600">Krishna</span></h1>
+      <div class="text-sm text-white/70">English, Hindi, Marathi, Gujarati, Tamil, Bengali, Telugu, Kannada</div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="mb-8 border-b border-white/15 flex space-x-4">
+      <button class="nav-btn text-lg py-2 px-4 nav-active" data-panel="text-panel">Text</button>
+      <button class="nav-btn text-lg py-2 px-4" data-panel="audio-panel">Audio</button>
+      <button class="nav-btn text-lg py-2 px-4" data-panel="document-panel">Document</button>
+      <button class="nav-btn text-lg py-2 px-4" data-panel="video-panel">Video</button>
+    </nav>
+
+    <!-- Panels -->
+    <div id="text-panel" class="panel active">
+      <!-- Text translation panel -->
+      <section class="card mb-8">
+        <h2 class="text-xl font-semibold mb-3">Text Translation Engine</h2>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div>
+            <label class="text-sm text-white/70">Source Language</label>
+            <select id="fromLang" class="input mt-1">
+              <option value="auto">Auto Detect</option>
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="mr">Marathi</option>
+              <option value="gu">Gujarati</option>
+              <option value="ta">Tamil</option>
+              <option value="bn">Bengali</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+            </select>
+            <label class="text-sm text-white/70 mt-4">Domain (context)</label>
+            <select id="domain" class="input mt-1">
+              <option>General</option>
+              <option>Legal</option>
+              <option>Medical</option>
+              <option>Education</option>
+              <option>eCommerce</option>
+            </select>
+            <label class="text-sm text-white/70 mt-4">Input Text</label>
+            <textarea id="inputText" class="input mt-1 min-h-[120px]" placeholder="Type or paste text here..."></textarea>
+            <div class="flex gap-2 mt-4 flex-wrap">
+              <button class="btn-primary" onclick="translateText()">Translate ▶</button>
+              <button class="btn" onclick="grammarFix()">Grammar Fix</button>
+              <button class="btn" onclick="rewriteStyle('formal')">Rewrite (Formal)</button>
+              <button class="btn" onclick="rewriteStyle('informal')">Rewrite (Informal)</button>
+            </div>
+            <div class="mt-4 flex gap-3 items-center flex-wrap">
+              <button class="btn" id="micBtn" onclick="startListening()">🎙 Start Mic</button>
+              <button class="btn" onclick="stopListening()">⏹ Stop Mic</button>
+              <button class="btn" onclick="clearInput()">Clear</button>
+            </div>
+            <div class="mt-3 text-xs text-white/60">
+              This prototype uses the public Google Translate endpoint (no key). Speech recognition uses your browser's Web Speech API. DOCX/PDF parsing and OCR are client-side via open-source libraries.
+            </div>
+          </div>
+          <div>
+            <label class="text-sm text-white/70">Target Language</label>
+            <select id="toLang" class="input mt-1">
+              <option value="hi">Hindi</option>
+              <option value="mr">Marathi</option>
+              <option value="gu">Gujarati</option>
+              <option value="ta">Tamil</option>
+              <option value="bn">Bengali</option>
+              <option value="en">English</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+            </select>
+            <label class="text-sm text-white/70 mt-4">Tone</label>
+            <div class="flex gap-2 mt-1">
+              <button class="btn" onclick="setTone('neutral')">Neutral</button>
+              <button class="btn" onclick="setTone('formal')">Formal</button>
+              <button class="btn" onclick="setTone('informal')">Informal</button>
+            </div>
+            <label class="text-sm text-white/70 mt-4">Output</label>
+            <textarea id="outputText" class="input mt-1 min-h-[120px]" readonly></textarea>
+            <div class="flex gap-2 mt-4">
+              <button class="btn" onclick="copyOut()">Copy</button>
+              <button class="btn" onclick="speakText()">🔊 Speak</button>
+              <button class="btn" onclick="downloadTxt('translation.txt', document.getElementById('outputText').value)">Download</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="audio-panel" class="panel">
+      <!-- Voice & Audio -->
+      <section class="card mb-8">
+        <h2 class="text-xl font-semibold mb-3">Voice & Audio Translation</h2>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div>
+            <label class="text-sm text-white/70">Live Speech → Translate</label>
+            <div class="mt-2 glass rounded-xl p-3">
+              <div id="liveTranscript" class="text-sm text-white/80 min-h-[80px]">Transcript will appear here when you use the mic.</div>
+              <div class="mt-3 flex gap-2">
+                <button class="btn-primary" onclick="startTranslateLive()">Start Live Translate</button>
+                <button class="btn" onclick="stopTranslateLive()">Stop</button>
+              </div>
+            </div>
+            <div class="mt-4">
+              <label class="text-sm text-white/70">Upload Audio (MP3 / WAV)</label>
+              <input type="file" id="audioFile" accept="audio/*" class="mt-2" onchange="handleAudioUpload(event)" />
+              <div class="text-xs text-white/60 mt-2">
+                Note: client-side transcription of audio files is limited. You can play the uploaded audio aloud while using Live Translate as a workaround.
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="text-sm text-white/70">Speaker diarization / Timestamps</label>
+            <div class="glass rounded-xl p-3 min-h-[120px]">
+              <div id="diarizeList" class="text-sm text-white/80">(Speaker segments and timestamps will be listed here after transcription)</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="document-panel" class="panel">
+      <!-- Document Translation -->
+      <section class="card mb-8">
+        <h2 class="text-xl font-semibold mb-3">Document Translation</h2>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div>
+            <label class="text-sm text-white/70">Upload Document (PDF / DOCX / PPTX)</label>
+            <input type="file" id="docFile" accept=".pdf,.docx,.pptx" class="mt-2" onchange="handleDocUpload(event)" />
+            <div class="mt-3 text-xs text-white/60">DOCX → HTML (mammoth). PDF → pdf.js. PPTX → text extraction (JSZip).</div>
+            <div class="mt-3 flex gap-2">
+              <button class="btn-primary" onclick="translateDocument()">Translate Document</button>
+              <button class="btn" onclick="downloadTxt('document_translation.txt', document.getElementById('docTranslated').innerText)">Download</button>
+            </div>
+          </div>
+          <div>
+            <label class="text-sm text-white/70">Side_by_Side Preview</label>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <div id="docOriginal" class="glass rounded-xl p-3 min-h-[140px] overflow-auto text-sm">Original preview</div>
+              <div id="docTranslated" class="glass rounded-xl p-3 min-h-[140px] overflow-auto text-sm">Translated preview</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="video-panel" class="panel">
+      <!-- Video Translation -->
+      <section class="card mb-8">
+        <h2 class="text-xl font-semibold mb-3">Video Content Translation</h2>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div>
+            <label class="text-sm text-white/70">Upload video or paste link (YouTube/Vimeo)</label>
+            <input type="file" id="videoFile" accept="video/*" class="mt-2" onchange="handleVideoUpload(event)" />
+            <input id="videoLink" class="input mt-2" placeholder="Paste YouTube/Vimeo link (optional)" />
+            <div class="mt-3 flex gap-2">
+              <button class="btn-primary" onclick="startVideoTranscription()">Transcribe (play & capture)</button>
+              <button class="btn" onclick="extractOCR()">OCR Frame</button>
+            </div>
+            <div class="text-xs text-white/60 mt-2">
+              Note: Automatic audio extraction + server-side models are not used. You can transcribe by playing the video aloud for browser mic, or capture frames for OCR.
+            </div>
+          </div>
+          <div>
+            <label class="text-sm text-white/70">Preview & Subtitle Generator</label>
+            <video id="previewVideo" controls class="w-full rounded-xl mt-2 bg-black">Your browser does not support HTML5 video.</video>
+            <div class="mt-3 flex gap-2">
+              <button class="btn" onclick="downloadSRT()">Download SRT</button>
+              <button class="btn" onclick="downloadVTT()">Download VTT</button>
+            </div>
+            <div id="subtitleEditor" class="mt-3 text-sm text-white/80">Subtitle editor will appear here after transcription.</div>
+          </div>
+        </div>
+      </section>
+      <section class="card mb-8">
+        <h2 class="text-xl font-semibold mb-3">Video Subtitles Generator</h2>
+        <div class="text-sm text-white/80">
+          After transcribing, timestamped segments let you download SRT/VTT or edit timings. For production, use server-side ASR + alignment.
+        </div>
+      </section>
+    </div>
+
+    <footer id="contact">
+      <div class="container">
+        <h2 class="section-title">Contact</h2>
+        <div class="row">
+          <span class="chip">✉️ 202krishnapatil@gmail.com</span>
+          <span class="chip">📞 +91 95801 59631</span>
+          <a class="chip" target="_blank" rel="noopener" href="https://in.linkedin.com/in/krishna-chandrakant-patil-33969536b">in LinkedIn</a>
+        </div>
+        <p class="muted" style="margin-top:16px">© <span id="y"></span> Krishna Patil • Built with HTML/CSS/JS</p>
+      </div>
+    </footer>
+  </div>
+
+<script>
+  // Nav tab switching
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      // Remove nav-active from all
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+      this.classList.add('nav-active');
+      // Hide all panels
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      // Show selected
+      document.getElementById(this.getAttribute('data-panel')).classList.add('active');
+    });
+  });
+
+// --- Nav tab switching (safe) ---
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+    this.classList.add('nav-active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const panelId = this.getAttribute('data-panel');
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
+  });
+});
+
+// --- Helpers & language locale map ---
+const LANG_TO_LOCALE = {
+  en: 'en-US', hi: 'hi-IN', mr: 'mr-IN', gu: 'gu-IN', ta: 'ta-IN',
+  bn: 'bn-IN', te: 'te-IN', kn: 'kn-IN', es: 'es-ES', fr: 'fr-FR',
+  de: 'de-DE', ja: 'ja-JP'
+};
+
+function langToLocale(code){
+  if(!code) return 'en-US';
+  if(LANG_TO_LOCALE[code]) return LANG_TO_LOCALE[code];
+  // if user passed e.g. "en-US" already, return it
+  if(code.includes('-')) return code;
+  return code + '-IN'; // fallback (for many Indian langs)
+}
+
+function $id(id){ return document.getElementById(id); }
+
+function parseGoogleTranslate(data){
+  // translate_a/single returns nested arrays: data[0] => segments: [[translated, original, ...], ...]
+  try{
+    if(Array.isArray(data) && Array.isArray(data[0])){
+      return data[0].map(seg => (Array.isArray(seg) ? (seg[0]||'') : '')).join('');
+    }
+    // fallback: maybe responseData style
+    if(data && data.responseData && data.responseData.translatedText) return data.responseData.translatedText;
+    return '';
+  }catch(e){
+    console.warn('parseGoogleTranslate error', e);
+    return '';
+  }
+}
+
+function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+function applyReplacements(text, replacements){
+  if(!replacements || typeof replacements !== 'object') return text;
+  let out = text;
+  const keys = Object.keys(replacements).sort((a,b)=> b.length - a.length);
+  for(const k of keys){
+    if(!k) continue;
+    const v = replacements[k];
+    const isLatin = /[A-Za-z]/.test(k);
+    if(isLatin){
+      const re = new RegExp('\\b' + escapeRegex(k) + '\\b', 'ig');
+      out = out.replace(re, (m) => {
+        // preserve capitalization
+        if(m[0] === m[0].toUpperCase()) return v.charAt(0).toUpperCase() + v.slice(1);
+        return v;
+      });
+    } else {
+      const re = new RegExp(escapeRegex(k), 'g');
+      out = out.replace(re, v);
+    }
+  }
+  return out;
+}
+
+// small rule maps for rewriteStyle (expand these for your demo)
+const RULES = {
+  en: {
+    formal: {
+      "hi":"hello", "hey":"hello", "thanks":"thank you", "gonna":"going to", "wanna":"want to", "ok":"okay"
+    },
+    informal: {
+      "hello":"hey", "please inform me":"let me know", "please":"pls", "do not":"don't"
+    }
+  },
+  hi: {
+    formal: { "हाय":"नमस्कार", "हेलो":"नमस्कार", "बताओ":"कृपया बताइए" },
+    informal: { "नमस्कार":"हाय", "कृपया":"प्लीज" }
+  },
+  default: { formal: {}, informal: {} }
+};
+
+// simple grammar heuristics per language
+function grammarFixSimple(text, lang){
+  if(!text) return text;
+  lang = (lang||'en').toLowerCase();
+  // English: punctuation/spacing, sentence capitalization
+  if(lang === 'en'){
+    let t = text.replace(/\s+/g,' ').trim();
+    t = t.replace(/\s+([,?.!;:])/g,'$1'); // fix spaces before punctuation
+    t = t.replace(/([.!?])\s*([a-z])/g, (m,p,c)=> p + ' ' + c.toUpperCase()); // capitalize after sentence end
+    t = t.replace(/^([a-z])/,(m,c)=> c.toUpperCase()); // capitalize first char
+    t = t.replace(/(\s)+/g,' ');
+    return t;
+  }
+  // Devanagari / Indian languages: normalize spaces & punctuation
+  if(['hi','mr','gu','bn','te','kn','ta'].includes(lang)){
+    let t = text.replace(/\s+/g,' ').trim();
+    t = t.replace(/\s+([,।!?])/g,'$1');
+    return t;
+  }
+  // fallback generic normalization
+  return text.replace(/\s+/g,' ').trim();
+}
+
+/* -------------------- Translation function -------------------- */
+/* Returns the translated string (and sets outputText). Uses google translate public endpoint */
+async function translateText(){
+  const input = $id('inputText').value.trim();
+  const fromLang = $id('fromLang').value || 'auto';
+  const toLang = $id('toLang').value || 'en';
+  if(!input){ alert('Please enter some text.'); return ''; }
+
+  const domain = $id('domain') ? $id('domain').value : 'General';
+  const contextual = (domain && domain !== 'General') ? `[Context:${domain}] ${input}` : input;
+
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(fromLang)}&tl=${encodeURIComponent(toLang)}&dt=t&q=${encodeURIComponent(contextual)}`;
+
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const translated = parseGoogleTranslate(data) || '';
+    $id('outputText').value = translated;
+    return translated;
+  }catch(err){
+    console.error('Translate error', err);
+    alert('Translation failed: ' + (err.message || err));
+    return '';
+  }
+}
+
+/* -------------------- Grammar Fix -------------------- */
+/* This now: 1) gets the translated text (in target language) and 2) runs grammar heuristics */
+async function grammarFix(){
+  // get a translated base (ensures we're fixing the selected output language)
+  const translated = await translateText();
+  if(!translated) return;
+  const toLang = $id('toLang').value || 'en';
+  const fixed = grammarFixSimple(translated, toLang);
+  $id('outputText').value = fixed;
+}
+
+/* -------------------- Rewrite (formal/informal) -------------------- */
+async function rewriteStyle(style){
+  // style: 'formal' or 'informal'
+  const translated = await translateText();
+  if(!translated) return;
+  const toLang = $id('toLang').value || 'en';
+  const rules = RULES[toLang] || RULES.default;
+  let out = translated;
+  if(style === 'formal' && rules.formal) out = applyReplacements(out, rules.formal);
+  else if(style === 'informal' && rules.informal) out = applyReplacements(out, rules.informal);
+  // apply a grammar normalization afterwards
+  out = grammarFixSimple(out, toLang);
+  $id('outputText').value = out;
+}
+
+/* -------------------- Speech Recognition / Live Translate -------------------- */
+let recognition = null;
+function startListening(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){ alert('Speech Recognition not supported in this browser (use Chrome).'); return; }
+  if(recognition){ recognition.stop(); recognition = null; }
+  recognition = new SpeechRecognition();
+  const from = $id('fromLang').value || 'en';
+  recognition.lang = langToLocale(from);
+  recognition.interimResults = true;
+  recognition.continuous = true;
+
+  recognition.onresult = (event) => {
+    let transcript = '';
+    for(let i = event.resultIndex; i < event.results.length; ++i){
+      transcript += event.results[i][0].transcript;
+    }
+    // show interim transcripts in input box (non-final)
+    $id('inputText').value = transcript;
+  };
+  recognition.onerror = (e) => console.error('rec error', e);
+  recognition.onend = () => console.log('recognition ended');
+  recognition.start();
+}
+function stopListening(){ if(recognition){ recognition.stop(); recognition=null; } }
+
+let liveRec = null;
+function startTranslateLive(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){ alert('Speech Recognition not supported'); return; }
+  if(liveRec){ liveRec.stop(); liveRec = null; }
+  liveRec = new SpeechRecognition();
+  liveRec.continuous = true;
+  liveRec.interimResults = true;
+  const from = $id('fromLang').value || 'en';
+  liveRec.lang = langToLocale(from);
+
+  liveRec.onresult = async (e) => {
+    let finalTranscript = '';
+    for(let i=0;i<e.results.length;i++){
+      const res = e.results[i];
+      if(res.isFinal){ finalTranscript += res[0].transcript + ' '; }
+    }
+    if(finalTranscript.trim()){
+      $id('liveTranscript').innerText = finalTranscript;
+      $id('inputText').value = finalTranscript;
+      try{ await translateText(); } catch(ex){ console.error(ex); }
+    }
+  };
+  liveRec.onerror = (ev)=> console.error('liveRec err', ev);
+  liveRec.start();
+}
+function stopTranslateLive(){ if(liveRec){ liveRec.stop(); liveRec=null; } }
+
+/* -------------------- Speak output -------------------- */
+function speakText(){
+  const text = $id('outputText').value;
+  const to = $id('toLang').value || 'en';
+  if(!text) return alert('Nothing to speak');
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = langToLocale(to);
+  speechSynthesis.speak(u);
+}
+
+/* -------------------- Small utilities (copy/download) -------------------- */
+function clearInput(){ $id('inputText').value=''; }
+function copyOut(){ navigator.clipboard.writeText($id('outputText').value||''); }
+function downloadTxt(name, text){
+  const a = document.createElement('a');
+  const blob = new Blob([text||''], {type:'text/plain'});
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// (optional) export some functions to window if your HTML uses inline onclick="..."
+window.translateText = translateText;
+window.grammarFix = grammarFix;
+window.rewriteStyle = rewriteStyle;
+window.startListening = startListening;
+window.stopListening = stopListening;
+window.startTranslateLive = startTranslateLive;
+window.stopTranslateLive = stopTranslateLive;
+window.speakText = speakText;
+window.clearInput = clearInput;
+window.copyOut = copyOut;
+window.downloadTxt = downloadTxt;
+
+  // --- Document parsing ---
+  let lastDocText = '';
+  async function handleDocUpload(e){
+    const f = e.target.files[0]; if(!f) return;
+    const orig = document.getElementById('docOriginal'); const translated = document.getElementById('docTranslated');
+    orig.innerHTML = 'Loading...'; translated.innerHTML = '';
+    const name = f.name.toLowerCase();
+    if(name.endsWith('.docx')){
+      const arrayBuffer = await f.arrayBuffer();
+      try{
+        const res = await mammoth.convertToHtml({arrayBuffer});
+        orig.innerHTML = res.value;
+        lastDocText = (res.value || '').replace(/<[^>]*>/g,' ');
+      }catch(err){ orig.innerText = 'DOCX parsing failed: '+err.message; }
+    }else if(name.endsWith('.pdf')){
+      const arrayBuffer = await f.arrayBuffer();
+      const uint8 = new Uint8Array(arrayBuffer);
+      const loadingTask = pdfjsLib.getDocument({data:uint8});
+      const pdf = await loadingTask.promise;
+      let full='';
+      for(let i=1;i<=pdf.numPages;i++){ const page = await pdf.getPage(i); const content = await page.getTextContent(); const strs = content.items.map(it=> it.str).join(' '); full += ' ' + strs; }
+      orig.innerText = full.slice(0, 20000);
+      lastDocText = full;
+    }else if(name.endsWith('.pptx')){
+      const arrayBuffer = await f.arrayBuffer();
+      try{
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        const slides = Object.keys(zip.files).filter(p=> p.startsWith('ppt/slides/slide'));
+        let text='';
+        for(const s of slides){ const content = await zip.files[s].async('string');
+          const t = (content.match(/<a:t>(.*?)<\/a:t>/g)||[]).map(x=> x.replace(/<.*?>/g,'')).join(' ');
+          text += ' ' + t;
+        }
+        orig.innerText = text.slice(0,20000);
+        lastDocText = text;
+      }catch(err){ orig.innerText = 'PPTX parsing failed'; }
+    }else{
+      orig.innerText = 'Unsupported file format';
+    }
+  }
+
+  // --- FIXED Document Translation ---
+  async function translateDocument(){
+    if(!lastDocText){ alert('No document text loaded (upload a file first)'); return; }
+    document.getElementById('docTranslated').innerText = 'Translating...';
+    const tgt = document.getElementById('toLang').value || 'en';
+    const from = document.getElementById('fromLang').value || 'auto';
+    const chunks = chunkString(lastDocText, 4000);
+    let translated='';
+    for(const c of chunks){
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${tgt}&dt=t&q=${encodeURIComponent(c)}`;
+      try{ 
+        const r = await fetch(url); const d = await r.json(); 
+        if(Array.isArray(d) && d[0] && Array.isArray(d[0])){
+          d[0].forEach(segment => {
+            if(Array.isArray(segment) && segment){
+              translated += segment;
+            }
+          });
+        }
+      }
+      catch(e){ console.error('doc translate chunk failed',e); translated += '[Translation error]'; }
+    }
+    document.getElementById('docTranslated').innerText = translated;
+  }
+
+  function chunkString(str, size){ const chunks=[]; for(let i=0;i<str.length;i+=size) chunks.push(str.slice(i,i+size)); return chunks; }
+
+  function handleAudioUpload(e){ const f = e.target.files[0]; if(!f) return; alert('Audio uploaded. To transcribe client-side, play the audio aloud and use "Start Live Translate" so the browser mic captures it. Direct file→ASR in-browser is not implemented (needs server).'); }
+
+  // --- Video ---
+  let subtitleSegments = [];
+  function handleVideoUpload(e){ const f = e.target.files[0]; if(!f) return; const url = URL.createObjectURL(f); const v = document.getElementById('previewVideo'); v.src = url; v.load(); }
+
+  let videoRec = null;
+  function startVideoTranscription(){
+    const v = document.getElementById('previewVideo'); if(!v.src){ alert('Load a video file or paste a link first'); return; }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SpeechRecognition) return alert('SpeechRecognition not supported in this browser');
+    subtitleSegments = [];
+    const rec = new SpeechRecognition(); rec.continuous=true; rec.interimResults=false; rec.lang = document.getElementById('fromLang').value || 'en-US';
+    let seq = 0;
+    rec.onresult = (e)=>{
+      for(let i=0;i<e.results.length;i++){
+        const r = e.results[i]; if(r.isFinal){
+          const text = r[0].transcript.trim(); const start = new Date().toISOString();
+          const seg = {id: ++seq, startMS: Date.now(), endMS: Date.now()+2000, text}; subtitleSegments.push(seg);
+          renderSubtitleEditor();
+        }
+      }
+    };
+    rec.onerror = (ev)=> console.error('video rec error',ev);
+    rec.start(); videoRec = rec; alert('Recognition started — now play the video loudly so your microphone can capture it. Results are approximate.');
+  }
+
+  function extractOCR(){
+    const v = document.getElementById('previewVideo');
+    if(!v) return alert('Load video first');
+    const canvas = document.createElement('canvas'); canvas.width = v.videoWidth; canvas.height = v.videoHeight;
+    const ctx = canvas.getContext('2d'); ctx.drawImage(v, 0, 0, canvas.width, canvas.height); document.body.appendChild(canvas);
+    Tesseract.recognize(canvas, 'eng').then(({data})=>{
+      alert('OCR text:' + data.text.slice(0,1000)); }).catch(e=> alert('OCR failed: '+e.message));
+  }
+
+  function renderSubtitleEditor(){
+    const el = document.getElementById('subtitleEditor');
+    if(!subtitleSegments.length){ el.innerText = 'No subtitles yet.'; return; }
+    el.innerHTML = '';
+    subtitleSegments.forEach((s,i)=>{
+      const div = document.createElement('div'); div.className='glass rounded p-2 mb-2';
+      div.innerHTML = `<div class='text-xs text-white/60'>Segment ${i+1} — approx ${new Date(s.startMS).toLocaleTimeString()}</div><div contenteditable='true' class='mt-1'>${s.text}</div>`;
+      el.appendChild(div);
+    });
+  }
+
+  function downloadSRT(){
+    if(!subtitleSegments.length) return alert('No subtitles to download');
+    const srt = subtitleSegments.map((s,i)=>`${i+1}
+${toSrtTime(s.startMS)} --> ${toSrtTime(s.endMS)}
+${s.text}`).join('\n\n');
+    downloadTxt('subtitles.srt', srt);
+  }
+
+  function downloadVTT(){
+    if(!subtitleSegments.length) return alert('No subtitles to download');
+    const vtt = 'WEBVTT\n\n' + subtitleSegments.map(s=> `${toSrtTime(s.startMS)} --> ${toSrtTime(s.endMS)}\n${s.text}`).join('\n\n');
+    downloadTxt('subtitles.vtt', vtt);
+  }
+
+  function toSrtTime(ms){
+    const d = new Date(ms);
+    const h = String(d.getUTCHours()).padStart(2,'0');
+    const m = String(d.getUTCMinutes()).padStart(2,'0');
+    const s = String(d.getUTCSeconds()).padStart(2,'0');
+    const msPart = String(ms%1000).padStart(3,'0');
+    return `${h}:${m}:${s},${msPart}`;
+  }
+</script>
+</body>
+</html>
