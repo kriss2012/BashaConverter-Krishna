@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BhashaConvert · Translation (Working)</title>
   <!-- Tailwind CSS -->
-  <link rel="stylesheet" href="src/styles.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -31,17 +30,130 @@
     .glass {
       background: rgba(255,255,255,.09);
       box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      backdrop-filter: blur(10px);
+    }
+    .card {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
     }
     .rounded-xl { border-radius: 1rem; }
     .input, .btn, .btn-primary {
       border-radius: 6px;
       border: none;
+      transition: all 0.2s ease;
     }
-    .input { padding: 8px; background: #0f183a; color: #fff; width: 100%; }
-    .btn { background: #242b49; color: #fff; padding: 7px 18px; cursor: pointer; }
-    .btn-primary { background: #8b5cf6; color: #fff; padding: 7px 18px; cursor: pointer; }
-    .btn:hover { background: #444b69; }
-    .btn-primary:hover { background: #6ef3ff; color: #071029; }
+    .input { 
+      padding: 12px; 
+      background: rgba(15, 24, 58, 0.8); 
+      color: #fff; 
+      width: 100%; 
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .input:focus {
+      outline: none;
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+    .btn { 
+      background: rgba(36, 43, 73, 0.8); 
+      color: #fff; 
+      padding: 10px 20px; 
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-primary { 
+      background: linear-gradient(135deg, #8b5cf6, #6ef3ff); 
+      color: #fff; 
+      padding: 10px 20px; 
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn:hover { 
+      background: rgba(68, 75, 105, 0.9); 
+      transform: translateY(-1px);
+    }
+    .btn-primary:hover { 
+      background: linear-gradient(135deg, #6ef3ff, #8b5cf6); 
+      color: #071029; 
+      transform: translateY(-1px);
+    }
+    
+    /* Video panel specific styles */
+    .video-container {
+      background: rgba(0,0,0,0.3);
+      border-radius: 1rem;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    
+    .subtitle-segment {
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+    }
+    
+    .subtitle-segment[contenteditable="true"]:focus {
+      outline: none;
+      border-color: #6ef3ff;
+      background: rgba(110, 243, 255, 0.1);
+    }
+    
+    /* File upload styling */
+    input[type="file"] {
+      background: rgba(15, 24, 58, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      color: white;
+      width: 100%;
+    }
+    
+    /* Loading states */
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    
+    /* Success/Error message styling */
+    .message {
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin: 0.5rem 0;
+      font-size: 0.875rem;
+    }
+    
+    .message.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+    
+    .message.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+    
+    .message.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .card {
+        padding: 1rem;
+      }
+      .grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen bg-[#071029] text-white font-sans p-0">
@@ -62,7 +174,7 @@
     <!-- Panels -->
     <div id="text-panel" class="panel active">
       <!-- Text translation panel -->
-      <section class="card mb-8">
+      <section class="card">
         <h2 class="text-xl font-semibold mb-3">Text Translation Engine</h2>
         <div class="grid lg:grid-cols-2 gap-6">
           <div>
@@ -135,7 +247,7 @@
 
     <div id="audio-panel" class="panel">
       <!-- Voice & Audio -->
-      <section class="card mb-8">
+      <section class="card">
         <h2 class="text-xl font-semibold mb-3">Voice & Audio Translation</h2>
         <div class="grid lg:grid-cols-2 gap-6">
           <div>
@@ -167,7 +279,7 @@
 
     <div id="document-panel" class="panel">
       <!-- Document Translation -->
-      <section class="card mb-8">
+      <section class="card">
         <h2 class="text-xl font-semibold mb-3">Document Translation</h2>
         <div class="grid lg:grid-cols-2 gap-6">
           <div>
@@ -192,15 +304,17 @@
 
     <div id="video-panel" class="panel">
       <!-- Video Translation -->
-      <section class="card mb-8">
+      <section class="card">
         <h2 class="text-xl font-semibold mb-3">Video Content Translation</h2>
         <div class="grid lg:grid-cols-2 gap-6">
           <div>
             <label class="text-sm text-white/70">Upload video or paste link (YouTube/Vimeo)</label>
             <input type="file" id="videoFile" accept="video/*" class="mt-2" onchange="handleVideoUpload(event)" />
             <input id="videoLink" class="input mt-2" placeholder="Paste YouTube/Vimeo link (optional)" />
+            <button class="btn mt-2" onclick="loadVideoFromLink()">Load from Link</button>
             <div class="mt-3 flex gap-2">
               <button class="btn-primary" onclick="startVideoTranscription()">Transcribe (play & capture)</button>
+              <button class="btn" onclick="stopVideoTranscription()">Stop Transcription</button>
               <button class="btn" onclick="extractOCR()">OCR Frame</button>
             </div>
             <div class="text-xs text-white/60 mt-2">
@@ -209,7 +323,9 @@
           </div>
           <div>
             <label class="text-sm text-white/70">Preview & Subtitle Generator</label>
-            <video id="previewVideo" controls class="w-full rounded-xl mt-2 bg-black">Your browser does not support HTML5 video.</video>
+            <div class="video-container">
+              <video id="previewVideo" controls class="w-full rounded-xl bg-black">Your browser does not support HTML5 video.</video>
+            </div>
             <div class="mt-3 flex gap-2">
               <button class="btn" onclick="downloadSRT()">Download SRT</button>
               <button class="btn" onclick="downloadVTT()">Download VTT</button>
@@ -218,23 +334,52 @@
           </div>
         </div>
       </section>
-      <section class="card mb-8">
+      
+      <section class="card">
         <h2 class="text-xl font-semibold mb-3">Video Subtitles Generator</h2>
         <div class="text-sm text-white/80">
           After transcribing, timestamped segments let you download SRT/VTT or edit timings. For production, use server-side ASR + alignment.
         </div>
       </section>
+      
+      <!-- Real-Time Chat Translator -->
+      <section class="card">
+        <h2 class="text-xl font-semibold mb-3">Real-Time Chat Translator</h2>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div>
+            <label class="text-sm text-white/70">Chat Input</label>
+            <textarea id="chatInput" class="input mt-1 min-h-[100px]" placeholder="Type your message here..."></textarea>
+            <div class="flex gap-2 mt-3">
+              <button class="btn-primary" onclick="translateChat()">Translate & Send</button>
+              <button class="btn" onclick="clearChat()">Clear Chat</button>
+            </div>
+            <div class="mt-3 text-xs text-white/60">
+              Supports multilingual live chat communication with message-by-message translation.
+            </div>
+          </div>
+          <div>
+            <label class="text-sm text-white/70">Chat History</label>
+            <div id="chatHistory" class="glass rounded-xl p-3 min-h-[200px] max-h-[300px] overflow-y-auto">
+              <div class="text-white/60 text-sm">Chat messages will appear here...</div>
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button class="btn" onclick="downloadChat()">Download Chat</button>
+              <button class="btn" onclick="exportChat()">Export JSON</button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <footer id="contact">
+    <footer id="contact" class="card">
       <div class="container">
-        <h2 class="section-title">Contact</h2>
-        <div class="row">
-          <span class="chip">✉️ 202krishnapatil@gmail.com</span>
-          <span class="chip">📞 +91 95801 59631</span>
-          <a class="chip" target="_blank" rel="noopener" href="https://in.linkedin.com/in/krishna-chandrakant-patil-33969536b">in LinkedIn</a>
+        <h2 class="section-title text-xl font-semibold mb-3">Contact</h2>
+        <div class="flex gap-3 flex-wrap">
+          <span class="chip bg-accent-600 px-3 py-2 rounded-full text-sm">✉️ 202krishnapatil@gmail.com</span>
+          <span class="chip bg-accent-600 px-3 py-2 rounded-full text-sm">📞 +91 95801 59631</span>
+          <a class="chip bg-accent-600 px-3 py-2 rounded-full text-sm hover:bg-accent-500 transition-colors" target="_blank" rel="noopener" href="https://in.linkedin.com/in/krishna-chandrakant-patil-33969536b">in LinkedIn</a>
         </div>
-        <p class="muted" style="margin-top:16px">© <span id="y"></span> Krishna Patil • Built with HTML/CSS/JS</p>
+        <p class="muted text-white/60 mt-4">© <span id="y"></span> Krishna Patil • Built with HTML/CSS/JS</p>
       </div>
     </footer>
   </div>
@@ -243,27 +388,14 @@
   // Nav tab switching
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-      // Remove nav-active from all
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
       this.classList.add('nav-active');
-      // Hide all panels
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      // Show selected
-      document.getElementById(this.getAttribute('data-panel')).classList.add('active');
+      const panelId = this.getAttribute('data-panel');
+      const panel = document.getElementById(panelId);
+      if (panel) panel.classList.add('active');
     });
   });
-
-// --- Nav tab switching (safe) ---
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
-    this.classList.add('nav-active');
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    const panelId = this.getAttribute('data-panel');
-    const panel = document.getElementById(panelId);
-    if (panel) panel.classList.add('active');
-  });
-});
 
 // --- Helpers & language locale map ---
 const LANG_TO_LOCALE = {
@@ -504,6 +636,154 @@ window.clearInput = clearInput;
 window.copyOut = copyOut;
 window.downloadTxt = downloadTxt;
 
+// Add missing functions
+function setTone(tone) {
+  // This function can be expanded to apply tone-specific translations
+  console.log('Tone set to:', tone);
+  // For now, just log the tone selection
+}
+
+// Export all functions to window for inline onclick handlers
+window.setTone = setTone;
+window.handleDocUpload = handleDocUpload;
+window.translateDocument = translateDocument;
+window.handleAudioUpload = handleAudioUpload;
+window.handleVideoUpload = handleVideoUpload;
+window.startVideoTranscription = startVideoTranscription;
+window.stopVideoTranscription = stopVideoTranscription;
+window.extractOCR = extractOCR;
+window.renderSubtitleEditor = renderSubtitleEditor;
+window.downloadSRT = downloadSRT;
+window.downloadVTT = downloadVTT;
+window.toSrtTime = toSrtTime;
+
+// Function to handle video links (YouTube/Vimeo)
+function loadVideoFromLink() {
+  const link = document.getElementById('videoLink').value.trim();
+  if (!link) {
+    alert('Please enter a video link');
+    return;
+  }
+  
+  // For now, show a message about link handling
+  // In a production environment, you would need to implement proper video extraction
+  const subtitleEditor = document.getElementById('subtitleEditor');
+  subtitleEditor.innerHTML = '<div class="text-yellow-400 text-sm">⚠️ Video link processing requires server-side implementation. For now, please upload video files directly.</div>';
+  
+  // Clear the link input
+  document.getElementById('videoLink').value = '';
+}
+
+window.loadVideoFromLink = loadVideoFromLink;
+
+// Chat translator functionality
+let chatMessages = [];
+
+async function translateChat() {
+  const input = document.getElementById('chatInput').value.trim();
+  if (!input) {
+    alert('Please enter a message to translate');
+    return;
+  }
+  
+  const fromLang = document.getElementById('fromLang').value || 'auto';
+  const toLang = document.getElementById('toLang').value || 'en';
+  
+  try {
+    // Translate the message
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(fromLang)}&tl=${encodeURIComponent(toLang)}&dt=t&q=${encodeURIComponent(input)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    
+    const data = await res.json();
+    const translated = parseGoogleTranslate(data) || '';
+    
+    // Add message to chat history
+    const message = {
+      id: Date.now(),
+      original: input,
+      translated: translated,
+      fromLang: fromLang,
+      toLang: toLang,
+      timestamp: new Date().toLocaleTimeString()
+    };
+    
+    chatMessages.push(message);
+    renderChatHistory();
+    
+    // Clear input
+    document.getElementById('chatInput').value = '';
+    
+  } catch (err) {
+    console.error('Chat translation failed:', err);
+    alert('Translation failed: ' + err.message);
+  }
+}
+
+function renderChatHistory() {
+  const history = document.getElementById('chatHistory');
+  if (chatMessages.length === 0) {
+    history.innerHTML = '<div class="text-white/60 text-sm">Chat messages will appear here...</div>';
+    return;
+  }
+  
+  history.innerHTML = chatMessages.map(msg => `
+    <div class="mb-3 p-2 bg-white/5 rounded">
+      <div class="text-xs text-white/60 mb-1">${msg.timestamp} (${msg.fromLang} → ${msg.toLang})</div>
+      <div class="text-white/80 mb-1"><strong>Original:</strong> ${msg.original}</div>
+      <div class="text-white"><strong>Translated:</strong> ${msg.translated}</div>
+    </div>
+  `).join('');
+  
+  // Scroll to bottom
+  history.scrollTop = history.scrollHeight;
+}
+
+function clearChat() {
+  chatMessages = [];
+  renderChatHistory();
+}
+
+function downloadChat() {
+  if (chatMessages.length === 0) {
+    alert('No chat messages to download');
+    return;
+  }
+  
+  const chatText = chatMessages.map(msg => 
+    `[${msg.timestamp}] ${msg.fromLang} → ${msg.toLang}\nOriginal: ${msg.original}\nTranslated: ${msg.translated}\n`
+  ).join('\n');
+  
+  downloadTxt('chat_translation.txt', chatText);
+}
+
+function exportChat() {
+  if (chatMessages.length === 0) {
+    alert('No chat messages to export');
+    return;
+  }
+  
+  const chatJson = JSON.stringify(chatMessages, null, 2);
+  const blob = new Blob([chatJson], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'chat_translation.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Export chat functions to window
+window.translateChat = translateChat;
+window.clearChat = clearChat;
+window.downloadChat = downloadChat;
+window.exportChat = exportChat;
+
+// Initialize the year in footer
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('y').textContent = new Date().getFullYear();
+});
+
   // --- Document parsing ---
   let lastDocText = '';
   async function handleDocUpload(e){
@@ -511,37 +791,45 @@ window.downloadTxt = downloadTxt;
     const orig = document.getElementById('docOriginal'); const translated = document.getElementById('docTranslated');
     orig.innerHTML = 'Loading...'; translated.innerHTML = '';
     const name = f.name.toLowerCase();
-    if(name.endsWith('.docx')){
-      const arrayBuffer = await f.arrayBuffer();
-      try{
+    
+    try {
+      if(name.endsWith('.docx')){
+        const arrayBuffer = await f.arrayBuffer();
         const res = await mammoth.convertToHtml({arrayBuffer});
         orig.innerHTML = res.value;
         lastDocText = (res.value || '').replace(/<[^>]*>/g,' ');
-      }catch(err){ orig.innerText = 'DOCX parsing failed: '+err.message; }
-    }else if(name.endsWith('.pdf')){
-      const arrayBuffer = await f.arrayBuffer();
-      const uint8 = new Uint8Array(arrayBuffer);
-      const loadingTask = pdfjsLib.getDocument({data:uint8});
-      const pdf = await loadingTask.promise;
-      let full='';
-      for(let i=1;i<=pdf.numPages;i++){ const page = await pdf.getPage(i); const content = await page.getTextContent(); const strs = content.items.map(it=> it.str).join(' '); full += ' ' + strs; }
-      orig.innerText = full.slice(0, 20000);
-      lastDocText = full;
-    }else if(name.endsWith('.pptx')){
-      const arrayBuffer = await f.arrayBuffer();
-      try{
+      }else if(name.endsWith('.pdf')){
+        const arrayBuffer = await f.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+        const loadingTask = pdfjsLib.getDocument({data:uint8});
+        const pdf = await loadingTask.promise;
+        let full='';
+        for(let i=1;i<=pdf.numPages;i++){ 
+          const page = await pdf.getPage(i); 
+          const content = await page.getTextContent(); 
+          const strs = content.items.map(it=> it.str).join(' '); 
+          full += ' ' + strs; 
+        }
+        orig.innerText = full.slice(0, 20000);
+        lastDocText = full;
+      }else if(name.endsWith('.pptx')){
+        const arrayBuffer = await f.arrayBuffer();
         const zip = await JSZip.loadAsync(arrayBuffer);
         const slides = Object.keys(zip.files).filter(p=> p.startsWith('ppt/slides/slide'));
         let text='';
-        for(const s of slides){ const content = await zip.files[s].async('string');
+        for(const s of slides){ 
+          const content = await zip.files[s].async('string');
           const t = (content.match(/<a:t>(.*?)<\/a:t>/g)||[]).map(x=> x.replace(/<.*?>/g,'')).join(' ');
           text += ' ' + t;
         }
         orig.innerText = text.slice(0,20000);
         lastDocText = text;
-      }catch(err){ orig.innerText = 'PPTX parsing failed'; }
-    }else{
-      orig.innerText = 'Unsupported file format';
+      }else{
+        orig.innerText = 'Unsupported file format';
+      }
+    } catch(err) {
+      orig.innerText = 'File parsing failed: ' + err.message;
+      console.error('Document parsing error:', err);
     }
   }
 
@@ -576,36 +864,149 @@ window.downloadTxt = downloadTxt;
 
   // --- Video ---
   let subtitleSegments = [];
-  function handleVideoUpload(e){ const f = e.target.files[0]; if(!f) return; const url = URL.createObjectURL(f); const v = document.getElementById('previewVideo'); v.src = url; v.load(); }
+  
+  function handleVideoUpload(e){ 
+    const f = e.target.files[0]; 
+    if(!f) return; 
+    
+    try {
+      const url = URL.createObjectURL(f); 
+      const v = document.getElementById('previewVideo'); 
+      v.src = url; 
+      v.load();
+      
+      // Clear previous subtitles
+      subtitleSegments = [];
+      renderSubtitleEditor();
+      
+      // Show success message
+      const subtitleEditor = document.getElementById('subtitleEditor');
+      subtitleEditor.innerHTML = '<div class="text-green-400 text-sm">Video loaded successfully! Use "Transcribe" to start capturing audio.</div>';
+    } catch (err) {
+      console.error('Video upload failed:', err);
+      alert('Video upload failed: ' + err.message);
+    }
+  }
 
   let videoRec = null;
   function startVideoTranscription(){
-    const v = document.getElementById('previewVideo'); if(!v.src){ alert('Load a video file or paste a link first'); return; }
+    const v = document.getElementById('previewVideo'); 
+    if(!v.src){ 
+      alert('Load a video file or paste a link first'); 
+      return; 
+    }
+    
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if(!SpeechRecognition) return alert('SpeechRecognition not supported in this browser');
+    
+    // Clear previous subtitles
     subtitleSegments = [];
-    const rec = new SpeechRecognition(); rec.continuous=true; rec.interimResults=false; rec.lang = document.getElementById('fromLang').value || 'en-US';
+    
+    const rec = new SpeechRecognition(); 
+    rec.continuous = true; 
+    rec.interimResults = false; 
+    rec.lang = langToLocale(document.getElementById('fromLang').value || 'en');
+    
     let seq = 0;
     rec.onresult = (e)=>{
       for(let i=0;i<e.results.length;i++){
-        const r = e.results[i]; if(r.isFinal){
-          const text = r[0].transcript.trim(); const start = new Date().toISOString();
-          const seg = {id: ++seq, startMS: Date.now(), endMS: Date.now()+2000, text}; subtitleSegments.push(seg);
+        const r = e.results[i]; 
+        if(r.isFinal){
+          const text = r[0].transcript.trim(); 
+          const seg = {
+            id: ++seq, 
+            startMS: Date.now(), 
+            endMS: Date.now()+2000, 
+            text
+          }; 
+          subtitleSegments.push(seg);
           renderSubtitleEditor();
         }
       }
     };
-    rec.onerror = (ev)=> console.error('video rec error',ev);
-    rec.start(); videoRec = rec; alert('Recognition started — now play the video loudly so your microphone can capture it. Results are approximate.');
+    
+    rec.onerror = (ev)=> {
+      console.error('video rec error',ev);
+      alert('Speech recognition error: ' + ev.error);
+    };
+    
+    rec.onend = () => {
+      console.log('Video transcription ended');
+      videoRec = null;
+    };
+    
+    rec.start(); 
+    videoRec = rec; 
+    
+    // Update UI to show transcription is active
+    const subtitleEditor = document.getElementById('subtitleEditor');
+    subtitleEditor.innerHTML = '<div class="text-yellow-400 text-sm">🎙️ Transcription active - play video loudly near microphone. Click "Stop" when done.</div>';
+    
+    alert('Recognition started — now play the video loudly so your microphone can capture it. Results are approximate.');
+  }
+  
+  function stopVideoTranscription() {
+    if (videoRec) {
+      videoRec.stop();
+      videoRec = null;
+      const subtitleEditor = document.getElementById('subtitleEditor');
+      if (subtitleSegments.length > 0) {
+        subtitleEditor.innerHTML = '<div class="text-green-400 text-sm">Transcription stopped. You can now edit subtitles and download them.</div>';
+      } else {
+        subtitleEditor.innerHTML = '<div class="text-yellow-400 text-sm">No audio captured. Try playing the video louder or check microphone permissions.</div>';
+      }
+    }
   }
 
   function extractOCR(){
     const v = document.getElementById('previewVideo');
-    if(!v) return alert('Load video first');
-    const canvas = document.createElement('canvas'); canvas.width = v.videoWidth; canvas.height = v.videoHeight;
-    const ctx = canvas.getContext('2d'); ctx.drawImage(v, 0, 0, canvas.width, canvas.height); document.body.appendChild(canvas);
-    Tesseract.recognize(canvas, 'eng').then(({data})=>{
-      alert('OCR text:' + data.text.slice(0,1000)); }).catch(e=> alert('OCR failed: '+e.message));
+    if(!v || !v.src) return alert('Load video first');
+    
+    try {
+      const canvas = document.createElement('canvas'); 
+      canvas.width = v.videoWidth || 640; 
+      canvas.height = v.videoHeight || 480;
+      const ctx = canvas.getContext('2d'); 
+      ctx.drawImage(v, 0, 0, canvas.width, canvas.height); 
+      
+      // Show canvas for user to see what's being processed
+      canvas.style.maxWidth = '100%';
+      canvas.style.border = '2px solid #8b5cf6';
+      canvas.style.borderRadius = '0.5rem';
+      canvas.style.margin = '1rem 0';
+      
+      // Remove any existing canvas
+      const existingCanvas = document.querySelector('#ocrCanvas');
+      if (existingCanvas) existingCanvas.remove();
+      
+      canvas.id = 'ocrCanvas';
+      document.getElementById('subtitleEditor').appendChild(canvas);
+      
+      // Process OCR
+      Tesseract.recognize(canvas, 'eng').then(({data})=>{
+        const ocrText = data.text.trim();
+        if (ocrText) {
+          // Add OCR text to subtitle segments
+          const seg = {
+            id: subtitleSegments.length + 1,
+            startMS: Date.now(),
+            endMS: Date.now() + 3000,
+            text: ocrText
+          };
+          subtitleSegments.push(seg);
+          renderSubtitleEditor();
+          alert('OCR completed! Text added to subtitles: ' + ocrText.slice(0, 100));
+        } else {
+          alert('No text detected in the frame');
+        }
+      }).catch(e=> {
+        console.error('OCR failed:', e);
+        alert('OCR failed: ' + e.message);
+      });
+    } catch (err) {
+      console.error('OCR setup failed:', err);
+      alert('OCR setup failed: ' + err.message);
+    }
   }
 
   function renderSubtitleEditor(){
@@ -613,8 +1014,8 @@ window.downloadTxt = downloadTxt;
     if(!subtitleSegments.length){ el.innerText = 'No subtitles yet.'; return; }
     el.innerHTML = '';
     subtitleSegments.forEach((s,i)=>{
-      const div = document.createElement('div'); div.className='glass rounded p-2 mb-2';
-      div.innerHTML = `<div class='text-xs text-white/60'>Segment ${i+1} — approx ${new Date(s.startMS).toLocaleTimeString()}</div><div contenteditable='true' class='mt-1'>${s.text}</div>`;
+      const div = document.createElement('div'); div.className='subtitle-segment';
+      div.innerHTML = `<div class='text-xs text-white/60'>Segment ${i+1} — approx ${new Date(s.startMS).toLocaleTimeString()}</div><div contenteditable='true' class='mt-1 text-white'>${s.text}</div>`;
       el.appendChild(div);
     });
   }
