@@ -219,7 +219,13 @@
 <body class="min-h-screen bg-[#071029] text-white font-sans p-0">
   <!-- Chat Toggle Button -->
   <button class="chat-toggle" onclick="toggleChat()" title="Real-time Chat Translator">
-    💬
+    <div class="flex items-center justify-center">
+      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+        <path d="M9 11h6v2H9z"/>
+        <path d="M9 7h6v2H9z"/>
+      </svg>
+    </div>
   </button>
 
   <!-- Chat Interface -->
@@ -386,6 +392,20 @@
           <div>
             <label class="text-sm text-white/70">Live Speech → Translate</label>
             <div class="mt-2 glass rounded-xl p-3">
+              <div class="mb-3">
+                <label class="text-sm text-white/70">Live Speech Language</label>
+                <select id="liveSpeechLang" class="input mt-1">
+                  <option value="auto">Auto Detect</option>
+                  <option value="en">English</option>
+                  <option value="hi">Hindi</option>
+                  <option value="mr">Marathi</option>
+                  <option value="gu">Gujarati</option>
+                  <option value="ta">Tamil</option>
+                  <option value="bn">Bengali</option>
+                  <option value="te">Telugu</option>
+                  <option value="kn">Kannada</option>
+                </select>
+              </div>
               <div id="liveTranscript" class="text-sm text-white/80 min-h-[80px]">Transcript will appear here when you use the mic.</div>
               <div class="mt-3 flex gap-2">
                 <button class="btn-primary" onclick="startTranslateLive()">Start Live Translate</button>
@@ -438,6 +458,11 @@
             <label class="text-sm text-white/70">Audio Visualization & Processing</label>
             <div id="audioVisualizer" class="audio-visualizer">
               <div class="text-white/60 text-sm">Audio waveform will appear here after upload</div>
+            </div>
+            <div class="mt-3 flex gap-2 justify-center">
+              <button id="playPauseBtn" class="btn" onclick="toggleAudioPlayback()" disabled>▶ Play</button>
+              <button id="stopBtn" class="btn" onclick="stopAudioPlayback()" disabled>⏹ Stop</button>
+              <button id="restartBtn" class="btn" onclick="restartAudioPlayback()" disabled>⏮ Restart</button>
             </div>
             <label class="text-sm text-white/70 mt-4">Audio Analysis Results</label>
             <div class="glass rounded-xl p-3 min-h-[120px]">
@@ -812,25 +837,79 @@ function startTranslateLive(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SpeechRecognition){ alert('Speech Recognition not supported'); return; }
   if(liveRec){ liveRec.stop(); liveRec = null; }
-  liveRec = new SpeechRecognition();
-  liveRec.continuous = true;
-  liveRec.interimResults = true;
-  const from = $id('fromLang').value || 'en';
+  
+  liveRec = new SpeechRecognition(); 
+  liveRec.continuous = true; 
+  liveRec.interimResults = true; 
+  
+  // Use the live speech language selection
+  const from = document.getElementById('liveSpeechLang').value || 'auto';
   liveRec.lang = langToLocale(from);
 
   liveRec.onresult = async (e) => {
     let finalTranscript = '';
+    let interimTranscript = '';
+    
     for(let i=0;i<e.results.length;i++){
       const res = e.results[i];
-      if(res.isFinal){ finalTranscript += res[0].transcript + ' '; }
+      if(res.isFinal){ 
+        finalTranscript += res[0].transcript + ' '; 
+      } else {
+        interimTranscript += res[0].transcript;
+      }
     }
+    
+    // Display both interim and final results
+    const liveTranscriptDiv = document.getElementById('liveTranscript');
+    if (liveTranscriptDiv) {
+      liveTranscriptDiv.innerHTML = `
+        <div class="text-white/60 text-sm mb-2">Interim: ${interimTranscript}</div>
+        <div class="text-white text-sm">Final: ${finalTranscript}</div>
+      `;
+    }
+    
     if(finalTranscript.trim()){
-      $id('liveTranscript').innerText = finalTranscript;
-      $id('inputText').value = finalTranscript;
-      try{ await translateText(); } catch(ex){ console.error(ex); }
+      // Update main input text
+      const inputText = document.getElementById('inputText');
+      if (inputText) inputText.value = finalTranscript;
+      
+      // Auto-translate if target language is set
+      try{ 
+        await translateText(); 
+      } catch(ex){ 
+        console.error('Live translation error:', ex); 
+      }
     }
   };
-  liveRec.onerror = (ev)=> console.error('liveRec err', ev);
+  
+  liveRec.onerror = (ev)=> {
+    console.error('liveRec err', ev);
+    let errorMessage = 'Speech recognition error: ';
+    
+    switch(ev.error) {
+      case 'not-allowed':
+        errorMessage += 'Microphone access denied. Please allow microphone access.';
+        break;
+      case 'no-speech':
+        errorMessage += 'No speech detected. Please speak clearly.';
+        break;
+      case 'audio-capture':
+        errorMessage += 'Audio capture failed. Check your microphone.';
+        break;
+      case 'network':
+        errorMessage += 'Network error. Check your internet connection.';
+        break;
+      default:
+        errorMessage += ev.error;
+    }
+    
+    alert(errorMessage);
+  };
+  
+  liveRec.onend = () => {
+    console.log('Live speech recognition ended');
+  };
+  
   liveRec.start();
 }
 function stopTranslateLive(){ if(liveRec){ liveRec.stop(); liveRec=null; } }
@@ -887,6 +966,9 @@ window.transcribeAudio = transcribeAudio;
 window.transcribeAudioWithSpeechAPI = transcribeAudioWithSpeechAPI;
 window.translateAudioFile = translateAudioFile;
 window.downloadAudioTranscript = downloadAudioTranscript;
+window.toggleAudioPlayback = toggleAudioPlayback;
+window.stopAudioPlayback = stopAudioPlayback;
+window.restartAudioPlayback = restartAudioPlayback;
 window.handleVideoUpload = handleVideoUpload;
 window.startVideoTranscription = startVideoTranscription;
 window.stopVideoTranscription = stopVideoTranscription;
@@ -1258,6 +1340,8 @@ function addUserGuidance() {
   let wavesurfer = null;
   let audioTranscript = '';
   let audioSegments = [];
+  let audioElement = null;
+  let isPlaying = false;
   
   function handleAudioUpload(e){ 
     const f = e.target.files[0]; 
@@ -1280,12 +1364,34 @@ function addUserGuidance() {
         barRadius: 3,
         cursorWidth: 1,
         height: 80,
-        barGap: 3
+        barGap: 3,
+        interact: true,
+        hideScrollbar: true
       });
       
       // Load audio file
       const url = URL.createObjectURL(f);
       wavesurfer.load(url);
+      
+      // Create audio element for playback
+      audioElement = new Audio(url);
+      
+      // Enable playback controls
+      document.getElementById('playPauseBtn').disabled = false;
+      document.getElementById('stopBtn').disabled = false;
+      document.getElementById('restartBtn').disabled = false;
+      
+      // Set up waveform events
+      wavesurfer.on('ready', function() {
+        console.log('Waveform ready');
+      });
+      
+      wavesurfer.on('audioprocess', function(currentTime) {
+        // Update audio element time to sync with waveform
+        if (audioElement && !isPlaying) {
+          audioElement.currentTime = currentTime;
+        }
+      });
       
       // Show success message
       document.getElementById('audioAnalysis').innerHTML = '<div class="text-green-400 text-sm">✅ Audio loaded successfully! Use "Transcribe Audio" to process.</div>';
@@ -1347,40 +1453,116 @@ function addUserGuidance() {
   }
   
   function analyzeAudioSegments(channelData, sampleRate, duration) {
-    // Advanced segment detection with speech analysis
+    // Advanced segment detection with improved speech analysis
     const segments = [];
-    const segmentLength = 3; // 3 second segments for better accuracy
+    const segmentLength = 2; // 2 second segments for better accuracy
     const samplesPerSegment = segmentLength * sampleRate;
     
     for (let i = 0; i < channelData.length; i += samplesPerSegment) {
       const segmentData = channelData.slice(i, i + samplesPerSegment);
       const amplitude = Math.sqrt(segmentData.reduce((sum, sample) => sum + sample * sample, 0) / segmentData.length);
       
-      // More sophisticated speech detection
-      const hasSpeech = amplitude > 0.005 && hasSpeechPattern(segmentData, sampleRate);
+      // Enhanced speech detection with multiple criteria
+      const hasSpeech = detectSpeechSegment(segmentData, sampleRate, amplitude);
+      const speechConfidence = calculateSpeechConfidence(segmentData, sampleRate, amplitude);
       
       segments.push({
         start: i / sampleRate,
         end: Math.min((i + samplesPerSegment) / sampleRate, duration),
         amplitude: amplitude,
         hasSpeech: hasSpeech,
-        energy: calculateEnergy(segmentData)
+        speechConfidence: speechConfidence,
+        energy: calculateEnergy(segmentData),
+        frequency: analyzeFrequencyContent(segmentData, sampleRate)
       });
     }
     
     return segments;
   }
   
-  function hasSpeechPattern(channelData, sampleRate) {
-    // Simple speech pattern detection based on frequency analysis
-    const fftSize = 2048;
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = fftSize;
-    analyser.smoothingTimeConstant = 0.8;
+  function detectSpeechSegment(channelData, sampleRate, amplitude) {
+    // Multi-criteria speech detection
+    const energy = calculateEnergy(channelData);
+    const zeroCrossings = calculateZeroCrossings(channelData);
+    const spectralCentroid = calculateSpectralCentroid(channelData, sampleRate);
     
-    // This is a simplified version - in production you'd use more sophisticated algorithms
-    return true; // Assume speech for now
+    // Speech typically has:
+    // - Moderate to high amplitude (not too quiet, not too loud)
+    // - Moderate energy levels
+    // - Reasonable zero-crossing rate (indicates frequency content)
+    // - Spectral centroid in human speech range (85-255 Hz for fundamental, 2-8 kHz for formants)
+    
+    const amplitudeOK = amplitude > 0.003 && amplitude < 0.8;
+    const energyOK = energy > 0.0001 && energy < 0.5;
+    const zeroCrossingsOK = zeroCrossings > 100 && zeroCrossings < 5000;
+    const spectralOK = spectralCentroid > 500 && spectralCentroid < 8000;
+    
+    return amplitudeOK && energyOK && zeroCrossingsOK && spectralOK;
+  }
+  
+  function calculateSpeechConfidence(channelData, sampleRate, amplitude) {
+    // Calculate confidence score for speech detection
+    const energy = calculateEnergy(channelData);
+    const zeroCrossings = calculateZeroCrossings(channelData);
+    const spectralCentroid = calculateSpectralCentroid(channelData, sampleRate);
+    
+    let confidence = 0;
+    
+    // Amplitude confidence (0-25 points)
+    if (amplitude > 0.01 && amplitude < 0.6) confidence += 25;
+    else if (amplitude > 0.005 && amplitude < 0.8) confidence += 15;
+    
+    // Energy confidence (0-25 points)
+    if (energy > 0.001 && energy < 0.3) confidence += 25;
+    else if (energy > 0.0001 && energy < 0.5) confidence += 15;
+    
+    // Zero-crossing confidence (0-25 points)
+    if (zeroCrossings > 200 && zeroCrossings < 3000) confidence += 25;
+    else if (zeroCrossings > 100 && zeroCrossings < 5000) confidence += 15;
+    
+    // Spectral confidence (0-25 points)
+    if (spectralCentroid > 1000 && spectralCentroid < 6000) confidence += 25;
+    else if (spectralCentroid > 500 && spectralCentroid < 8000) confidence += 15;
+    
+    return Math.min(confidence, 100);
+  }
+  
+  function calculateZeroCrossings(channelData) {
+    let crossings = 0;
+    for (let i = 1; i < channelData.length; i++) {
+      if ((channelData[i] >= 0 && channelData[i-1] < 0) || 
+          (channelData[i] < 0 && channelData[i-1] >= 0)) {
+        crossings++;
+      }
+    }
+    return crossings;
+  }
+  
+  function calculateSpectralCentroid(channelData, sampleRate) {
+    // Simplified spectral centroid calculation
+    // In production, you'd use FFT for accurate frequency analysis
+    const energy = calculateEnergy(channelData);
+    const zeroCrossings = calculateZeroCrossings(channelData);
+    
+    // Estimate frequency based on zero-crossing rate
+    // Frequency ≈ (zeroCrossings * sampleRate) / (2 * channelData.length)
+    const estimatedFreq = (zeroCrossings * sampleRate) / (2 * channelData.length);
+    
+    return estimatedFreq;
+  }
+  
+  function analyzeFrequencyContent(channelData, sampleRate) {
+    // Basic frequency analysis
+    const zeroCrossings = calculateZeroCrossings(channelData);
+    const estimatedFreq = (zeroCrossings * sampleRate) / (2 * channelData.length);
+    
+    return {
+      dominant: estimatedFreq,
+      range: {
+        low: Math.max(0, estimatedFreq * 0.5),
+        high: Math.min(sampleRate / 2, estimatedFreq * 2)
+      }
+    };
   }
   
   function calculateEnergy(channelData) {
@@ -1388,42 +1570,75 @@ function addUserGuidance() {
   }
   
   function generateSimulatedTranscription(segments, duration) {
-    // Generate realistic transcription based on audio analysis
+    // Generate realistic transcription based on enhanced audio analysis
     let transcript = '';
-    let currentTime = 0;
+    let speechSegments = segments.filter(s => s.hasSpeech);
+    let totalSpeechTime = speechSegments.reduce((sum, s) => sum + (s.end - s.start), 0);
     
-    segments.forEach((segment, index) => {
-      if (segment.hasSpeech) {
-        const segmentDuration = segment.end - segment.start;
-        const words = Math.max(1, Math.floor(segmentDuration * 2)); // Approximate words per second
-        
-        // Generate placeholder text based on segment characteristics
-        const placeholderText = generatePlaceholderText(words, segment.energy);
-        
-        transcript += `[${formatTime(segment.start)} - ${formatTime(segment.end)}] ${placeholderText}\n\n`;
-        currentTime = segment.end;
-      }
+    if (speechSegments.length === 0) {
+      transcript = `[00:00 - ${formatTime(duration)}] Audio content detected but no clear speech patterns identified.\n\n`;
+      return transcript;
+    }
+    
+    // Generate more realistic transcription based on speech characteristics
+    speechSegments.forEach((segment, index) => {
+      const segmentDuration = segment.end - segment.start;
+      const confidence = segment.speechConfidence;
+      const frequency = segment.frequency;
+      
+      // Estimate words based on duration and confidence
+      const wordsPerSecond = Math.max(1, Math.min(3, confidence / 25)); // 1-3 words per second based on confidence
+      const estimatedWords = Math.floor(segmentDuration * wordsPerSecond);
+      
+      // Generate context-aware placeholder text
+      const placeholderText = generateContextualPlaceholderText(estimatedWords, segment, index, speechSegments.length);
+      
+      transcript += `[${formatTime(segment.start)} - ${formatTime(segment.end)}] ${placeholderText}\n`;
+      transcript += `  Confidence: ${confidence}% | Frequency: ${Math.round(frequency.dominant)}Hz\n\n`;
     });
     
-    if (!transcript) {
-      transcript = '[00:00 - ' + formatTime(duration) + '] Audio content detected but no clear speech patterns identified.\n\n';
-    }
+    // Add summary
+    transcript += `\n--- TRANSCRIPTION SUMMARY ---\n`;
+    transcript += `Total Duration: ${formatTime(duration)}\n`;
+    transcript += `Speech Segments: ${speechSegments.length}\n`;
+    transcript += `Speech Time: ${formatTime(totalSpeechTime)}\n`;
+    transcript += `Average Confidence: ${Math.round(speechSegments.reduce((sum, s) => sum + s.speechConfidence, 0) / speechSegments.length)}%\n`;
     
     return transcript;
   }
   
-  function generatePlaceholderText(wordCount, energy) {
-    // Generate realistic placeholder text based on audio characteristics
-    const templates = [
-      "This is a sample transcription segment with natural language patterns.",
-      "The audio contains speech content that needs to be transcribed accurately.",
-      "Multiple speakers may be present in this audio segment.",
-      "Background noise and speech are mixed in this portion.",
-      "Clear speech patterns detected in this time segment."
-    ];
+  function generateContextualPlaceholderText(wordCount, segment, index, totalSegments) {
+    // Generate context-aware placeholder text based on segment characteristics
+    const templates = {
+      high: [
+        "Clear speech detected with high confidence. This segment contains natural language patterns typical of human conversation.",
+        "Strong speech signal identified. The audio shows clear pronunciation and natural speech rhythm.",
+        "High-quality speech segment detected. Language patterns indicate clear communication."
+      ],
+      medium: [
+        "Moderate speech clarity detected. Some background noise may be present but speech is distinguishable.",
+        "Speech patterns identified with medium confidence. Content appears to be conversational.",
+        "Clear speech with moderate background interference. Language patterns are recognizable."
+      ],
+      low: [
+        "Speech detected with lower confidence. Background noise may affect clarity.",
+        "Faint speech patterns identified. Some words may be difficult to distinguish.",
+        "Speech present but with reduced clarity. Content may require enhanced processing."
+      ]
+    };
     
-    const selected = templates[Math.floor(Math.random() * templates.length)];
-    return selected.substring(0, Math.min(selected.length, wordCount * 5));
+    // Determine confidence level
+    let confidenceLevel = 'medium';
+    if (segment.speechConfidence >= 75) confidenceLevel = 'high';
+    else if (segment.speechConfidence <= 50) confidenceLevel = 'low';
+    
+    // Select template based on confidence and position
+    const levelTemplates = templates[confidenceLevel];
+    const selected = levelTemplates[index % levelTemplates.length];
+    
+    // Adjust text length based on word count
+    const targetLength = Math.max(20, wordCount * 4);
+    return selected.substring(0, Math.min(selected.length, targetLength));
   }
   
   function formatTime(seconds) {
@@ -1519,6 +1734,73 @@ function addUserGuidance() {
     downloadTxt(filename, content);
   }
   
+  // Audio playback control functions
+  function toggleAudioPlayback() {
+    if (!audioElement) return;
+    
+    if (isPlaying) {
+      pauseAudio();
+    } else {
+      playAudio();
+    }
+  }
+  
+  function playAudio() {
+    if (!audioElement) return;
+    
+    audioElement.play();
+    isPlaying = true;
+    document.getElementById('playPauseBtn').innerHTML = '⏸ Pause';
+    document.getElementById('playPauseBtn').classList.add('btn-primary');
+    document.getElementById('playPauseBtn').classList.remove('btn');
+    
+    // Start waveform playback
+    if (wavesurfer) {
+      wavesurfer.play();
+    }
+  }
+  
+  function pauseAudio() {
+    if (!audioElement) return;
+    
+    audioElement.pause();
+    isPlaying = false;
+    document.getElementById('playPauseBtn').innerHTML = '▶ Play';
+    document.getElementById('playPauseBtn').classList.remove('btn-primary');
+    document.getElementById('playPauseBtn').classList.add('btn');
+    
+    // Pause waveform
+    if (wavesurfer) {
+      wavesurfer.pause();
+    }
+  }
+  
+  function stopAudioPlayback() {
+    if (!audioElement) return;
+    
+    audioElement.pause();
+    audioElement.currentTime = 0;
+    isPlaying = false;
+    document.getElementById('playPauseBtn').innerHTML = '▶ Play';
+    document.getElementById('playPauseBtn').classList.remove('btn-primary');
+    document.getElementById('playPauseBtn').classList.add('btn');
+    
+    // Stop waveform
+    if (wavesurfer) {
+      wavesurfer.stop();
+    }
+  }
+  
+  function restartAudioPlayback() {
+    if (!audioElement) return;
+    
+    audioElement.currentTime = 0;
+    if (isPlaying) {
+      audioElement.play();
+      if (wavesurfer) wavesurfer.play();
+    }
+  }
+  
   // Alternative transcription method using Web Speech API (if available)
   async function transcribeAudioWithSpeechAPI() {
     if (!audioFile) {
@@ -1536,25 +1818,37 @@ function addUserGuidance() {
       // Show processing status
       document.getElementById('audioAnalysis').innerHTML = '<div class="text-yellow-400 text-sm">🔄 Using Speech Recognition API... Please wait.</div>';
       
-      // Create audio element to play the file
-      const audio = new Audio();
-      const url = URL.createObjectURL(audioFile);
-      audio.src = url;
+      // Use existing audio element if available
+      if (!audioElement) {
+        const url = URL.createObjectURL(audioFile);
+        audioElement = new Audio(url);
+      }
       
       // Start speech recognition
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
-      recognition.interimResults = false;
-      recognition.lang = document.getElementById('audioFromLang').value || 'en-US';
+      recognition.interimResults = true;
+      recognition.lang = langToLocale(document.getElementById('audioFromLang').value || 'en');
       
       let finalTranscript = '';
+      let interimTranscript = '';
       
       recognition.onresult = (event) => {
-        for (let i = 0; i < event.results.length; i++) {
+        interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript + ' ';
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
           }
         }
+        
+        // Show interim results
+        document.getElementById('liveTranscript').innerHTML = `
+          <div class="text-white/60 text-sm">Interim: ${interimTranscript}</div>
+          <div class="text-white text-sm">Final: ${finalTranscript}</div>
+        `;
       };
       
       recognition.onend = () => {
@@ -1564,7 +1858,7 @@ function addUserGuidance() {
           document.getElementById('audioAnalysis').innerHTML = `
             <div class="text-green-400 text-sm mb-2">✅ Speech Recognition Complete!</div>
             <div class="text-white/80 text-sm">
-              Duration: ${audio.duration ? audio.duration.toFixed(2) + 's' : 'Unknown'}<br>
+              Duration: ${audioElement.duration ? audioElement.duration.toFixed(2) + 's' : 'Unknown'}<br>
               Words detected: ${finalTranscript.split(' ').length}<br>
               <button class="btn text-xs mt-2" onclick="translateAudioFile()">Translate Now</button>
             </div>
@@ -1581,11 +1875,12 @@ function addUserGuidance() {
       
       // Start recognition and play audio
       recognition.start();
-      audio.play();
+      playAudio();
       
       // Stop recognition after audio ends
-      audio.onended = () => {
+      audioElement.onended = () => {
         recognition.stop();
+        pauseAudio();
       };
       
     } catch (err) {
