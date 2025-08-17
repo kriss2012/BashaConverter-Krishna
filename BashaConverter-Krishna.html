@@ -157,119 +157,7 @@
       padding: 1rem;
       margin: 1rem 0;
     }
-    
-    /* Chat interface */
-    .chat-interface {
-      position: fixed;
-      top: 50%;
-      right: 20px;
-      transform: translateY(-50%);
-      width: 350px;
-      max-height: 80vh;
-      background: rgba(15, 24, 58, 0.95);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-      border-radius: 1rem;
-      backdrop-filter: blur(20px);
-      z-index: 1000;
-      display: none;
-    }
-    
-    .chat-interface.active {
-      display: block;
-    }
-    
-    .chat-header {
-      background: linear-gradient(135deg, #8b5cf6, #6ef3ff);
-      padding: 1rem;
-      border-radius: 1rem 1rem 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .chat-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: linear-gradient(135deg, #8b5cf6, #6ef3ff);
-      border: none;
-      color: white;
-      padding: 0.75rem;
-      border-radius: 50%;
-      cursor: pointer;
-      z-index: 1001;
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
-    }
-    
-    /* Responsive improvements */
-    @media (max-width: 768px) {
-      .card {
-        padding: 1rem;
-      }
-      .grid {
-        grid-template-columns: 1fr !important;
-      }
-      .chat-interface {
-        width: 90vw;
-        right: 5vw;
-      }
-    }
   </style>
-</head>
-<body class="min-h-screen bg-[#071029] text-white font-sans p-0">
-  <!-- Chat Toggle Button -->
-  <button class="chat-toggle" onclick="toggleChat()" title="Real-time Chat Translator">
-    <div class="flex items-center justify-center">
-      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-        <path d="M9 11h6v2H9z"/>
-        <path d="M9 7h6v2H9z"/>
-      </svg>
-    </div>
-  </button>
-
-  <!-- Chat Interface -->
-  <div id="chatInterface" class="chat-interface">
-    <div class="chat-header">
-      <h3 class="font-semibold">💬 Real-time Chat Translator</h3>
-      <button onclick="toggleChat()" class="text-white hover:text-gray-200">✕</button>
-    </div>
-    <div class="p-4">
-      <div class="mb-3">
-        <select id="chatFromLang" class="input text-sm">
-          <option value="auto">Auto Detect</option>
-          <option value="en">English</option>
-          <option value="hi">Hindi</option>
-          <option value="mr">Marathi</option>
-          <option value="gu">Gujarati</option>
-          <option value="ta">Tamil</option>
-          <option value="bn">Bengali</option>
-          <option value="te">Telugu</option>
-          <option value="kn">Kannada</option>
-        </select>
-        <select id="chatToLang" class="input text-sm mt-2">
-          <option value="hi">Hindi</option>
-          <option value="mr">Marathi</option>
-          <option value="gu">Gujarati</option>
-          <option value="ta">Tamil</option>
-          <option value="bn">Bengali</option>
-          <option value="en">English</option>
-          <option value="te">Telugu</option>
-          <option value="kn">Kannada</option>
-        </select>
-      </div>
-      <textarea id="chatInput" class="input text-sm min-h-[80px]" placeholder="Type your message..."></textarea>
-      <button class="btn-primary w-full mt-2 text-sm" onclick="translateChat()">Translate & Send</button>
-      <div id="chatHistory" class="mt-3 max-h-[300px] overflow-y-auto text-sm">
-        <div class="text-white/60 text-xs">Chat messages will appear here...</div>
-      </div>
-      <div class="flex gap-2 mt-3">
-        <button class="btn text-xs" onclick="clearChat()">Clear</button>
-        <button class="btn text-xs" onclick="downloadChat()">Download</button>
-      </div>
-    </div>
-  </div>
-
   <div class="max-w-6xl mx-auto px-4 pt-8 pb-6">
     <header class="mb-8 flex items-center justify-between">
       <h1 class="text-3xl font-bold tracking-tight">Bhasha-Converter <span class="text-accent-600">Krishna</span></h1>
@@ -685,30 +573,125 @@ function grammarFixSimple(text, lang){
 
 /* -------------------- Translation function -------------------- */
 /* Returns the translated string (and sets outputText). Uses google translate public endpoint */
-async function translateText(){
-  const input = $id('inputText').value.trim();
-  const fromLang = $id('fromLang').value || 'auto';
-  const toLang = $id('toLang').value || 'en';
-  if(!input){ alert('Please enter some text.'); return ''; }
-
-  const domain = $id('domain') ? $id('domain').value : 'General';
-  const contextual = (domain && domain !== 'General') ? `[Context:${domain}] ${input}` : input;
-
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(fromLang)}&tl=${encodeURIComponent(toLang)}&dt=t&q=${encodeURIComponent(contextual)}`;
-
-  try{
+/* -------------------- FIX: Avoid function overwrite -------------------- */
+// Renamed the audio helper version
+async function translateString(text, fromLang, toLang) {
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(fromLang)}&tl=${encodeURIComponent(toLang)}&dt=t&q=${encodeURIComponent(text)}`;
     const res = await fetch(url);
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
     const data = await res.json();
-    const translated = parseGoogleTranslate(data) || '';
-    $id('outputText').value = translated;
-    return translated;
-  }catch(err){
-    console.error('Translate error', err);
-    alert('Translation failed: ' + (err.message || err));
+    return parseGoogleTranslate(data) || '';
+  } catch (err) {
+    console.error('Translation failed:', err);
     return '';
   }
 }
+
+// Update audio translation call:
+async function translateAudioFile() {
+  if (!audioTranscript) {
+    showMessage('⚠️ Please transcribe the audio file first', 'warning');
+    return;
+  }
+
+  const fromLang = document.getElementById('audioFromLang').value || 'auto';
+  const toLang = document.getElementById('audioToLang').value || 'en';
+
+  try {
+    showMessage('🔄 Translating audio transcript... Please wait.', 'warning', 'transcriptionResults');
+
+    const translatedText = await translateString(audioTranscript, fromLang, toLang);
+
+    document.getElementById('transcriptionResults').innerHTML = `
+      <div class="text-green-400 text-sm mb-2">🌐 Translation Complete (${fromLang} → ${toLang})</div>
+      <div class="text-white/80 text-sm mb-3"><strong>Original:</strong><br>
+        <div class="text-white/60 text-xs whitespace-pre-line">${audioTranscript}</div>
+      </div>
+      <div class="text-white/80 text-sm"><strong>Translated:</strong><br>
+        <div class="text-white whitespace-pre-line">${translatedText}</div>
+      </div>
+    `;
+
+    window.translatedAudioTranscript = translatedText;
+
+  } catch (err) {
+    console.error('Audio translation failed:', err);
+    showMessage('❌ Translation failed: ' + err.message, 'error', 'transcriptionResults');
+  }
+}
+
+/* -------------------- Enhancements -------------------- */
+// Cache translations
+const translationCache = new Map();
+
+// Debounce helper
+function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+// User-friendly messages (instead of alert)
+function showMessage(text, type = 'info', targetId = null) {
+  const div = document.createElement('div');
+  div.className = `message ${type}`;
+  div.textContent = text;
+
+  if (targetId && document.getElementById(targetId)) {
+    const container = document.getElementById(targetId);
+    container.innerHTML = '';
+    container.appendChild(div);
+  } else {
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+  }
+}
+
+/* -------------------- Enhanced Text Translation -------------------- */
+async function translateText() {
+  const input = $id('inputText').value.trim();
+  const fromLang = $id('fromLang').value || 'auto';
+  const toLang = $id('toLang').value || 'en';
+  if (!input) { showMessage('⚠️ Please enter some text', 'warning'); return ''; }
+
+  // Add domain context if selected
+  const domain = $id('domain') ? $id('domain').value : 'General';
+  const contextual = (domain && domain !== 'General') ? `[Context:${domain}] ${input}` : input;
+
+  // Check cache
+  const cacheKey = `${fromLang}|${toLang}|${contextual}`;
+  if (translationCache.has(cacheKey)) {
+    const cached = translationCache.get(cacheKey);
+    $id('outputText').value = cached;
+    return cached;
+  }
+
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(fromLang)}&tl=${encodeURIComponent(toLang)}&dt=t&q=${encodeURIComponent(contextual)}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const data = await res.json();
+    const translated = parseGoogleTranslate(data) || '';
+
+    $id('outputText').value = translated;
+    translationCache.set(cacheKey, translated); // cache it
+    return translated;
+  } catch (err) {
+    console.error('Translate error', err);
+    showMessage('❌ Translation failed: ' + err.message, 'error');
+    return '';
+  }
+}
+
+// Optional: live translate while typing (with debounce)
+$id('inputText').addEventListener('input', debounce(translateText, 600));
+
 
 /* -------------------- Grammar Fix -------------------- */
 /* This now: 1) gets the translated text (in target language) and 2) runs grammar heuristics */
