@@ -2,221 +2,587 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BhashaConvert · Advanced AI Translation</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui"] },
-          colors: { neon: { 500: '#6ef3ff' }, accent: { 600: '#8b5cf6' } }
-        }
-      }
-    };
-  </script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <!-- External libs (free, client-side) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>BHASHA · AI Translation</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- External libs -->
   <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
-  <!-- PDF generation library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Audio processing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/7.7.3/wavesurfer.min.js"></script>
+
   <style>
-    .nav-active { border-bottom: 3px solid #8b5cf6; color: #8b5cf6; }
-    .nav-btn { border-bottom: 3px solid transparent; transition: color .2s, border-color .2s; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:    #000000;
+      --white:    #ffffff;
+      --platinum: #e8e6e0;
+      --silver:   #a8a49c;
+      --chrome:   #c0bdb6;
+      --dim:      #555250;
+      --panel:    #0a0a0a;
+      --card:     #111110;
+      --border:   #222220;
+      --accent:   #c8b98a;  /* gold accent — only sparingly */
+      --danger:   #c0392b;
+      --success:  #27ae60;
+      --warn:     #d4a017;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body:    'Barlow', sans-serif;
+      --font-cond:    'Barlow Condensed', sans-serif;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --nav-h: 56px;
+    }
+
+    html, body {
+      background: var(--black);
+      color: var(--platinum);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100%;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── TOP BAR ─── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--black);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      height: 52px;
+    }
+    .topbar-logo {
+      font-family: var(--font-display);
+      font-size: 28px;
+      letter-spacing: 0.1em;
+      color: var(--white);
+    }
+    .topbar-logo span { color: var(--accent); }
+    .topbar-badge {
+      font-family: var(--font-cond);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    /* ─── HERO STRIP ─── */
+    .hero {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+    }
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 10vw, 72px);
+      line-height: 0.92;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      text-transform: uppercase;
+    }
+    .hero-sub {
+      font-family: var(--font-cond);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .pill {
+      font-family: var(--font-cond);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--silver);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 3px 8px;
+    }
+    .pill.gold { border-color: var(--accent); color: var(--accent); }
+
+    /* ─── NAV ─── */
+    .nav-wrap {
+      position: sticky;
+      top: 52px;
+      z-index: 90;
+      background: var(--black);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .nav-wrap::-webkit-scrollbar { display: none; }
+    .nav {
+      display: flex;
+      min-width: max-content;
+    }
+    .nav-btn {
+      font-family: var(--font-cond);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 14px 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-btn:hover { color: var(--silver); }
+    .nav-btn.active {
+      color: var(--white);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ─── PANELS ─── */
     .panel { display: none; }
     .panel.active { display: block; }
-    .glass {
-      background: rgba(255,255,255,.09);
-      box-shadow: 0 2px 12px rgba(0,0,0,.08);
-      backdrop-filter: blur(10px);
+
+    /* ─── MAIN CONTENT ─── */
+    .content { padding: 16px; max-width: 900px; margin: 0 auto; }
+
+    /* ─── SECTION LABEL ─── */
+    .section-label {
+      font-family: var(--font-cond);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
     }
+
+    /* ─── CARDS ─── */
     .card {
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: 1rem;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 16px;
+      margin-bottom: 16px;
     }
-    .rounded-xl { border-radius: 1rem; }
-    .input, .btn, .btn-primary {
-      border-radius: 6px;
-      border: none;
-      transition: all 0.2s ease;
+    .card-title {
+      font-family: var(--font-display);
+      font-size: clamp(20px, 5vw, 32px);
+      letter-spacing: 0.06em;
+      color: var(--white);
+      text-transform: uppercase;
+      margin-bottom: 16px;
     }
-    .input { 
-      padding: 12px; 
-      background: rgba(15, 24, 58, 0.8); 
-      color: #fff; 
-      width: 100%; 
-      border: 1px solid rgba(255,255,255,0.1);
+
+    /* ─── FORM ELEMENTS ─── */
+    label.lbl {
+      display: block;
+      font-family: var(--font-cond);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 6px;
+      margin-top: 14px;
     }
-    .input:focus {
-      outline: none;
-      border-color: #8b5cf6;
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-    }
-    .btn { 
-      background: rgba(36, 43, 73, 0.8); 
-      color: #fff; 
-      padding: 10px 20px; 
-      cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .btn-primary { 
-      background: linear-gradient(135deg, #8b5cf6, #6ef3ff); 
-      color: #fff; 
-      padding: 10px 20px; 
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn:hover { 
-      background: rgba(68, 75, 105, 0.9); 
-      transform: translateY(-1px);
-    }
-    .btn-primary:hover { 
-      background: linear-gradient(135deg, #6ef3ff, #8b5cf6); 
-      color: #071029; 
-      transform: translateY(-1px);
-    }
-    
-    /* Video panel specific styles */
-    .video-container {
-      background: rgba(0,0,0,0.3);
-      border-radius: 1rem;
-      padding: 1rem;
-      margin: 1rem 0;
-    }
-    
-    .subtitle-segment {
-      background: rgba(139, 92, 246, 0.1);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      margin: 0.5rem 0;
-    }
-    
-    .subtitle-segment[contenteditable="true"]:focus {
-      outline: none;
-      border-color: #6ef3ff;
-      background: rgba(110, 243, 255, 0.1);
-    }
-    
-    /* File upload styling */
-    input[type="file"] {
-      background: rgba(15, 24, 58, 0.8);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 0.5rem;
-      padding: 0.5rem;
-      color: white;
+    label.lbl:first-child { margin-top: 0; }
+
+    select, textarea, input[type="text"], input[type="file"] {
       width: 100%;
+      background: var(--panel);
+      color: var(--platinum);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 0.2s;
     }
-    
-    /* Loading states */
-    .loading {
-      opacity: 0.6;
-      pointer-events: none;
+    select:focus, textarea:focus, input[type="text"]:focus {
+      border-color: var(--chrome);
     }
-    
-    /* Success/Error message styling */
-    .message {
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      margin: 0.5rem 0;
-      font-size: 0.875rem;
+    select option { background: var(--panel); color: var(--platinum); }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.6;
     }
-    
-    .message.success {
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      color: #22c55e;
+
+    input[type="file"] {
+      padding: 8px 12px;
+      cursor: pointer;
+      color: var(--silver);
+      font-size: 13px;
     }
-    
-    .message.warning {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      color: #f59e0b;
+    input[type="file"]::-webkit-file-upload-button {
+      background: var(--border);
+      color: var(--silver);
+      border: none;
+      padding: 4px 10px;
+      margin-right: 10px;
+      border-radius: 2px;
+      font-family: var(--font-cond);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
     }
-    
-    .message.error {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #ef4444;
+
+    /* ─── BUTTONS ─── */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
     }
-    
-    /* Audio visualization */
-    .audio-visualizer {
-      background: rgba(0,0,0,0.2);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin: 1rem 0;
+    .btn {
+      font-family: var(--font-cond);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--silver);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 10px 16px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      min-height: 40px;
     }
-    
-    /* Responsive improvements */
-    @media (max-width: 768px) {
-      .card {
-        padding: 1rem;
-      }
-      .grid {
-        grid-template-columns: 1fr !important;
-      }
+    .btn:hover, .btn:active { background: var(--border); color: var(--white); }
+
+    .btn-primary {
+      font-family: var(--font-cond);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--black);
+      background: var(--white);
+      border: 1px solid var(--white);
+      border-radius: 2px;
+      padding: 10px 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s, color 0.18s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      min-height: 40px;
+    }
+    .btn-primary:hover, .btn-primary:active {
+      background: var(--platinum);
+      border-color: var(--platinum);
+    }
+    .btn-primary:disabled, .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn.active-mic {
+      color: var(--warn);
+      border-color: var(--warn);
+      background: rgba(212,160,23,0.08);
+    }
+
+    /* ─── GRID ─── */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 640px) {
+      .grid2 { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ─── GLASS / OUTPUT BOX ─── */
+    .output-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 12px;
+      min-height: 80px;
+      font-size: 14px;
+      color: var(--platinum);
+      overflow-y: auto;
+      word-break: break-word;
+    }
+    .output-box.tall { min-height: 110px; max-height: 240px; overflow-y: auto; }
+
+    /* ─── TONE TOGGLE ─── */
+    .tone-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tone-btn {
+      font-family: var(--font-cond);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--dim);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: all 0.18s;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 36px;
+    }
+    .tone-btn.selected, .tone-btn:hover { color: var(--white); border-color: var(--chrome); background: var(--border); }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    /* ─── MESSAGES ─── */
+    .msg {
+      font-family: var(--font-cond);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      padding: 10px 12px;
+      border-radius: 2px;
+      margin: 8px 0;
+    }
+    .msg.success { background: rgba(39,174,96,0.12); border: 1px solid rgba(39,174,96,0.3); color: #5dde8b; }
+    .msg.warning { background: rgba(212,160,23,0.12); border: 1px solid rgba(212,160,23,0.3); color: #e8c55a; }
+    .msg.error   { background: rgba(192,57,43,0.12); border: 1px solid rgba(192,57,43,0.3); color: #e87070; }
+    .msg.info    { background: rgba(200,185,138,0.08); border: 1px solid rgba(200,185,138,0.2); color: var(--accent); }
+
+    /* ─── AUDIO VISUALIZER ─── */
+    #audioVisualizer {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 12px;
+      min-height: 100px;
+      margin-top: 10px;
+    }
+
+    /* ─── VIDEO ─── */
+    .video-wrap {
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    video {
+      width: 100%;
+      display: block;
+      max-height: 220px;
+      object-fit: contain;
+      background: #000;
+    }
+
+    /* ─── SUBTITLE SEGMENT ─── */
+    .subtitle-segment {
+      background: rgba(200,185,138,0.06);
+      border: 1px solid rgba(200,185,138,0.2);
+      border-radius: 2px;
+      padding: 10px 12px;
+      margin: 6px 0;
+    }
+    .subtitle-segment [contenteditable="true"] { outline: none; }
+    .subtitle-segment [contenteditable="true"]:focus {
+      border-bottom: 1px solid var(--accent);
+    }
+
+    /* ─── DOC PREVIEW ─── */
+    .doc-preview-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    @media (min-width: 540px) {
+      .doc-preview-wrap { grid-template-columns: 1fr 1fr; }
+    }
+    .doc-preview {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 12px;
+      min-height: 140px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 13px;
+      color: var(--silver);
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      padding: 20px 16px;
+      padding-bottom: calc(20px + var(--safe-bottom));
+      margin-top: 24px;
+    }
+    .footer-title {
+      font-family: var(--font-cond);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 12px;
+    }
+    .contact-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      font-family: var(--font-cond);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--silver);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 6px 12px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+      display: inline-block;
+    }
+    .chip:hover { border-color: var(--chrome); color: var(--white); }
+    .footer-copy {
+      font-size: 12px;
+      color: var(--dim);
+      margin-top: 14px;
+      font-family: var(--font-cond);
+      letter-spacing: 0.12em;
+    }
+
+    /* ─── COMPAT WARNING ─── */
+    #compatWarning {
+      display: none;
+      margin: 10px 0;
+    }
+
+    /* ─── LOADING SPINNER ─── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--white);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    /* ─── SMALL UTILS ─── */
+    .text-dim { color: var(--dim); font-size: 12px; }
+    .text-silver { color: var(--silver); }
+    .mt-8 { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+    .mt-16 { margin-top: 16px; }
+
+    /* ─── PROGRESS BAR ─── */
+    .progress-bar-wrap {
+      width: 100%;
+      height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 1px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ─── Android safe area ─── */
+    @supports (padding: env(safe-area-inset-bottom)) {
+      body { padding-bottom: env(safe-area-inset-bottom); }
+    }
+
+    /* ─── TOUCH TARGETS ─── */
+    @media (hover: none) {
+      .btn, .btn-primary, .tone-btn, .nav-btn { min-height: 44px; }
     }
   </style>
 </head>
-<body class="min-h-screen bg-[#071029] text-white font-sans p-0">
-  <div class="max-w-6xl mx-auto px-4 pt-8 pb-6">
-    <header class="mb-8 flex items-center justify-between">
-      <h1 class="text-3xl font-bold tracking-tight">Bhasha-Converter <span class="text-accent-600"></span></h1>
-      <div class="text-sm text-white/70">🚀 Advanced AI Translation • 8 Languages • Real-time Processing • Free Forever</div>
-    </header>
-    
-    <!-- Competitive Features Banner -->
-    <div class="mb-6 p-4 bg-gradient-to-r from-accent-600/20 to-neon-500/20 rounded-xl border border-accent-600/30">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <div class="flex items-center space-x-2">
-            <span class="text-green-400">✓</span>
-            <span class="text-sm">No API Keys Required</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="text-green-400">✓</span>
-            <span class="text-sm">100% Free</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="text-green-400">✓</span>
-            <span class="text-sm">Privacy First</span>
-          </div>
-        </div>
-        <div class="text-right">
-          <div class="text-xs text-white/60">Unique Features</div>
-          <div class="text-sm font-semibold">PDF Generation • OCR • Audio Analysis</div>
-        </div>
-      </div>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-logo">BHASHA<span>·</span>AI</div>
+    <div class="topbar-badge">8 Languages · Free Forever</div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-headline">Advanced<br>Translation</div>
+    <div class="hero-sub">Real-time AI · Privacy First · No API Keys</div>
+    <div class="pills">
+      <span class="pill gold">No API Keys</span>
+      <span class="pill">100% Free</span>
+      <span class="pill">Privacy First</span>
+      <span class="pill">PDF Generation</span>
+      <span class="pill">OCR</span>
+      <span class="pill">Audio Analysis</span>
     </div>
+  </div>
 
-    <!-- Navigation Bar -->
-    <nav class="mb-8 border-b border-white/15 flex space-x-4">
-      <button class="nav-btn text-lg py-2 px-4 nav-active" data-panel="text-panel">Text</button>
-      <button class="nav-btn text-lg py-2 px-4" data-panel="audio-panel">Audio</button>
-      <button class="nav-btn text-lg py-2 px-4" data-panel="document-panel">Document</button>
-      <button class="nav-btn text-lg py-2 px-4" data-panel="video-panel">Video</button>
+  <!-- COMPAT WARNING (injected by JS) -->
+  <div id="compatWarning"></div>
+
+  <!-- NAV -->
+  <div class="nav-wrap">
+    <nav class="nav">
+      <button class="nav-btn active" data-panel="text-panel">Text</button>
+      <button class="nav-btn" data-panel="audio-panel">Audio</button>
+      <button class="nav-btn" data-panel="document-panel">Document</button>
+      <button class="nav-btn" data-panel="video-panel">Video</button>
     </nav>
+  </div>
 
-    <!-- Panels -->
-    <div id="text-panel" class="panel active">
-      <!-- Text translation panel -->
-      <section class="card">
-        <h2 class="text-xl font-semibold mb-3">🚀 Advanced Text Translation Engine</h2>
-        <div class="grid lg:grid-cols-2 gap-6">
+  <!-- ════════════════════════════ TEXT PANEL ════════════════════════════ -->
+  <div id="text-panel" class="panel active">
+    <div class="content">
+      <div class="section-label">Text Translation Engine</div>
+
+      <div class="card">
+        <div class="card-title">Translate</div>
+
+        <div class="grid2">
+          <!-- LEFT -->
           <div>
-            <label class="text-sm text-white/70">Source Language</label>
-            <select id="fromLang" class="input mt-1">
+            <label class="lbl">Source Language</label>
+            <select id="fromLang">
               <option value="auto">Auto Detect</option>
               <option value="en">English</option>
               <option value="hi">Hindi</option>
@@ -227,8 +593,9 @@
               <option value="te">Telugu</option>
               <option value="kn">Kannada</option>
             </select>
-            <label class="text-sm text-white/70 mt-4">Domain (context)</label>
-            <select id="domain" class="input mt-1">
+
+            <label class="lbl">Domain / Context</label>
+            <select id="domain">
               <option>General</option>
               <option>Legal</option>
               <option>Medical</option>
@@ -237,26 +604,28 @@
               <option>Technical</option>
               <option>Creative</option>
             </select>
-            <label class="text-sm text-white/70 mt-4">Input Text</label>
-            <textarea id="inputText" class="input mt-1 min-h-[120px]" placeholder="Type or paste text here..."></textarea>
-            <div class="flex gap-2 mt-4 flex-wrap">
-              <button class="btn-primary" onclick="translateText()">Translate ▶</button>
+
+            <label class="lbl">Input Text</label>
+            <textarea id="inputText" placeholder="Type or paste text here…"></textarea>
+
+            <div class="btn-row">
+              <button class="btn-primary" onclick="translateText()">Translate</button>
               <button class="btn" onclick="grammarFix()">Grammar Fix</button>
-              <button class="btn" onclick="rewriteStyle('formal')">Rewrite (Formal)</button>
-              <button class="btn" onclick="rewriteStyle('informal')">Rewrite (Informal)</button>
+              <button class="btn" onclick="rewriteStyle('formal')">Formal</button>
+              <button class="btn" onclick="rewriteStyle('informal')">Informal</button>
             </div>
-            <div class="mt-4 flex gap-3 items-center flex-wrap">
-              <button class="btn" id="micBtn" onclick="startListening()">🎙 Start Mic</button>
-              <button class="btn" onclick="stopListening()">⏹ Stop Mic</button>
+
+            <div class="btn-row mt-8">
+              <button class="btn" id="micBtn" onclick="startListening()">🎙 Mic</button>
+              <button class="btn" onclick="stopListening()">⏹ Stop</button>
               <button class="btn" onclick="clearInput()">Clear</button>
             </div>
-            <div class="mt-3 text-xs text-white/60">
-              ✨ Advanced AI translation with context awareness • Grammar correction • Style adaptation
-            </div>
           </div>
+
+          <!-- RIGHT -->
           <div>
-            <label class="text-sm text-white/70">Target Language</label>
-            <select id="toLang" class="input mt-1">
+            <label class="lbl">Target Language</label>
+            <select id="toLang">
               <option value="hi">Hindi</option>
               <option value="mr">Marathi</option>
               <option value="gu">Gujarati</option>
@@ -266,1703 +635,854 @@
               <option value="te">Telugu</option>
               <option value="kn">Kannada</option>
             </select>
-            <label class="text-sm text-white/70 mt-4">Tone</label>
-            <div class="flex gap-2 mt-1">
-              <button class="btn" onclick="setTone('neutral')">Neutral</button>
-              <button class="btn" onclick="setTone('formal')">Formal</button>
-              <button class="btn" onclick="setTone('informal')">Informal</button>
+
+            <label class="lbl">Tone</label>
+            <div class="tone-group">
+              <button class="tone-btn selected" onclick="setTone('neutral',this)">Neutral</button>
+              <button class="tone-btn" onclick="setTone('formal',this)">Formal</button>
+              <button class="tone-btn" onclick="setTone('informal',this)">Informal</button>
             </div>
-            <label class="text-sm text-white/70 mt-4">Output</label>
-            <textarea id="outputText" class="input mt-1 min-h-[120px]" readonly></textarea>
-            <div class="flex gap-2 mt-4">
+
+            <label class="lbl">Output</label>
+            <textarea id="outputText" readonly placeholder="Translation appears here…"></textarea>
+
+            <div class="btn-row">
               <button class="btn" onclick="copyOut()">Copy</button>
               <button class="btn" onclick="speakText()">🔊 Speak</button>
               <button class="btn" onclick="downloadTxt('translation.txt', document.getElementById('outputText').value)">Download</button>
             </div>
           </div>
         </div>
-      </section>
+        <div class="text-dim mt-12">✦ Context-aware AI translation · Grammar correction · Style adaptation</div>
+      </div>
     </div>
+  </div>
 
-    <div id="audio-panel" class="panel">
-      <!-- Voice & Audio -->
-      <section class="card">
-        <h2 class="text-xl font-semibold mb-3">🎵 Advanced Voice & Audio Translation</h2>
-        <div class="grid lg:grid-cols-2 gap-6">
+  <!-- ════════════════════════════ AUDIO PANEL ════════════════════════════ -->
+  <div id="audio-panel" class="panel">
+    <div class="content">
+      <div class="section-label">Voice &amp; Audio Translation</div>
+
+      <div class="card">
+        <div class="card-title">Live Speech</div>
+
+        <label class="lbl">Speech Language</label>
+        <select id="liveSpeechLang">
+          <option value="auto">Auto Detect</option>
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="mr">Marathi</option>
+          <option value="gu">Gujarati</option>
+          <option value="ta">Tamil</option>
+          <option value="bn">Bengali</option>
+          <option value="te">Telugu</option>
+          <option value="kn">Kannada</option>
+        </select>
+
+        <div id="liveTranscript" class="output-box mt-12" style="min-height:70px;">Transcript will appear here when you use the mic.</div>
+
+        <div class="btn-row">
+          <button class="btn-primary" onclick="startTranslateLive()">Start Live Translate</button>
+          <button class="btn" onclick="stopTranslateLive()">Stop</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Audio File</div>
+
+        <div class="grid2">
           <div>
-            <label class="text-sm text-white/70">Live Speech → Translate</label>
-            <div class="mt-2 glass rounded-xl p-3">
-              <div class="mb-3">
-                <label class="text-sm text-white/70">Live Speech Language</label>
-                <select id="liveSpeechLang" class="input mt-1">
-                  <option value="auto">Auto Detect</option>
-                  <option value="en">English</option>
-                  <option value="hi">Hindi</option>
-                  <option value="mr">Marathi</option>
-                  <option value="gu">Gujarati</option>
-                  <option value="ta">Tamil</option>
-                  <option value="bn">Bengali</option>
-                  <option value="te">Telugu</option>
-                  <option value="kn">Kannada</option>
-                </select>
-              </div>
-              <div id="liveTranscript" class="text-sm text-white/80 min-h-[80px]">Transcript will appear here when you use the mic.</div>
-              <div class="mt-3 flex gap-2">
-                <button class="btn-primary" onclick="startTranslateLive()">Start Live Translate</button>
-                <button class="btn" onclick="stopTranslateLive()">Stop</button>
-              </div>
+            <label class="lbl">Upload Audio (MP3 / WAV)</label>
+            <input type="file" id="audioFile" accept="audio/*" onchange="handleAudioUpload(event)" />
+
+            <label class="lbl">Source Language</label>
+            <select id="audioFromLang">
+              <option value="auto">Auto Detect</option>
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="mr">Marathi</option>
+              <option value="gu">Gujarati</option>
+              <option value="ta">Tamil</option>
+              <option value="bn">Bengali</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+            </select>
+
+            <label class="lbl">Target Language</label>
+            <select id="audioToLang">
+              <option value="hi">Hindi</option>
+              <option value="mr">Marathi</option>
+              <option value="gu">Gujarati</option>
+              <option value="ta">Tamil</option>
+              <option value="bn">Bengali</option>
+              <option value="en">English</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+            </select>
+
+            <div class="btn-row">
+              <button class="btn-primary" onclick="transcribeAudio()">Transcribe</button>
+              <button class="btn" onclick="transcribeAudioWithSpeechAPI()">Speech API</button>
             </div>
-            <div class="mt-4">
-              <label class="text-sm text-white/70">Upload Audio (MP3 / WAV)</label>
-              <input type="file" id="audioFile" accept="audio/*" class="mt-2" onchange="handleAudioUpload(event)" />
-              <div class="mt-3">
-                <label class="text-sm text-white/70">Audio Source Language</label>
-                <select id="audioFromLang" class="input mt-1">
-                  <option value="auto">Auto Detect</option>
-                  <option value="en">English</option>
-                  <option value="hi">Hindi</option>
-                  <option value="mr">Marathi</option>
-                  <option value="gu">Gujarati</option>
-                  <option value="ta">Tamil</option>
-                  <option value="bn">Bengali</option>
-                  <option value="te">Telugu</option>
-                  <option value="kn">Kannada</option>
-                </select>
-              </div>
-              <div class="mt-3">
-                <label class="text-sm text-white/70">Audio Target Language</label>
-                <select id="audioToLang" class="input mt-1">
-                  <option value="hi">Hindi</option>
-                  <option value="mr">Marathi</option>
-                  <option value="gu">Gujarati</option>
-                  <option value="ta">Tamil</option>
-                  <option value="bn">Bengali</option>
-                  <option value="en">English</option>
-                  <option value="te">Telugu</option>
-                  <option value="kn">Kannada</option>
-                </select>
-              </div>
-              <div class="mt-3 flex gap-2">
-                <button class="btn-primary" onclick="transcribeAudio()">Transcribe Audio</button>
-                <button class="btn" onclick="transcribeAudioWithSpeechAPI()">Use Speech API</button>
-                <button class="btn" onclick="translateAudioFile()">Translate Audio</button>
-                <button class="btn" onclick="downloadAudioTranscript()">Download Transcript</button>
-              </div>
-              <div class="text-xs text-white/60 mt-2">
-                🎯 Advanced audio processing with direct file transcription and translation<br>
-                <span class="text-yellow-400">💡 Tip:</span> Use "Transcribe Audio" for analysis or "Use Speech API" for real transcription
-              </div>
+            <div class="btn-row">
+              <button class="btn" onclick="translateAudioFile()">Translate</button>
+              <button class="btn" onclick="downloadAudioTranscript()">Download</button>
             </div>
+            <div class="text-dim mt-8">💡 Use "Transcribe" for analysis or "Speech API" for live transcription</div>
           </div>
+
           <div>
-            <label class="text-sm text-white/70">Audio Visualization & Processing</label>
-            <div id="audioVisualizer" class="audio-visualizer">
-              <div class="text-white/60 text-sm">Audio waveform will appear here after upload</div>
-            </div>
-            <div class="mt-3 flex gap-2 justify-center">
+            <label class="lbl">Waveform</label>
+            <div id="audioVisualizer"><span class="text-dim" style="font-size:13px;">Upload audio to see waveform</span></div>
+
+            <div class="btn-row mt-12">
               <button id="playPauseBtn" class="btn" onclick="toggleAudioPlayback()" disabled>▶ Play</button>
               <button id="stopBtn" class="btn" onclick="stopAudioPlayback()" disabled>⏹ Stop</button>
               <button id="restartBtn" class="btn" onclick="restartAudioPlayback()" disabled>⏮ Restart</button>
             </div>
-            <label class="text-sm text-white/70 mt-4">Audio Analysis Results</label>
-            <div class="glass rounded-xl p-3 min-h-[120px]">
-              <div id="audioAnalysis" class="text-sm text-white/80">Upload an audio file to see analysis results</div>
-            </div>
-            <div class="mt-3">
-              <label class="text-sm text-white/70">Transcription Results</label>
-              <div id="transcriptionResults" class="glass rounded-xl p-3 min-h-[100px] max-h-[200px] overflow-y-auto">
-                <div class="text-white/60 text-sm">Transcription will appear here after processing</div>
-              </div>
-            </div>
+
+            <label class="lbl">Analysis</label>
+            <div id="audioAnalysis" class="output-box">Upload an audio file to see analysis</div>
+
+            <label class="lbl">Transcription</label>
+            <div id="transcriptionResults" class="output-box tall">Transcription will appear after processing</div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
+  </div>
 
-    <div id="document-panel" class="panel">
-      <!-- Document Translation -->
-      <section class="card">
-        <h2 class="text-xl font-semibold mb-3">📄 Advanced Document Translation</h2>
-        <div class="grid lg:grid-cols-2 gap-6">
-          <div>
-            <label class="text-sm text-white/70">Upload Document (PDF / DOCX / PPTX)</label>
-            <input type="file" id="docFile" accept=".pdf,.docx,.pptx" class="mt-2" onchange="handleDocUpload(event)" />
-            <div class="mt-3 text-xs text-white/60">✨ Advanced parsing with format preservation • PDF generation • Layout maintenance</div>
-            <div class="mt-3 flex gap-2">
-              <button class="btn-primary" onclick="translateDocument()">Translate Document</button>
-              <button class="btn" onclick="downloadTranslatedPDF()">Download PDF</button>
-              <button class="btn" onclick="downloadTxt('document_translation.txt', document.getElementById('docTranslated').innerText)">Download TXT</button>
-            </div>
-          </div>
-          <div>
-            <label class="text-sm text-white/70">Side_by_Side Preview</label>
-            <div class="grid grid-cols-2 gap-2 mt-2">
-              <div id="docOriginal" class="glass rounded-xl p-3 min-h-[140px] overflow-auto text-sm">Original preview</div>
-              <div id="docTranslated" class="glass rounded-xl p-3 min-h-[140px] overflow-auto text-sm">Translated preview</div>
-            </div>
-          </div>
+  <!-- ════════════════════════════ DOCUMENT PANEL ════════════════════════════ -->
+  <div id="document-panel" class="panel">
+    <div class="content">
+      <div class="section-label">Document Translation</div>
+
+      <div class="card">
+        <div class="card-title">Document</div>
+
+        <label class="lbl">Upload (PDF / DOCX / PPTX)</label>
+        <input type="file" id="docFile" accept=".pdf,.docx,.pptx" onchange="handleDocUpload(event)" />
+        <div class="text-dim mt-8">✦ Advanced parsing · Format preservation · PDF generation</div>
+
+        <div class="btn-row">
+          <button class="btn-primary" onclick="translateDocument()">Translate Document</button>
+          <button class="btn" onclick="downloadTranslatedPDF()">Download PDF</button>
+          <button class="btn" onclick="downloadTxt('document_translation.txt', document.getElementById('docTranslated').innerText)">Download TXT</button>
         </div>
-      </section>
-    </div>
 
-    <div id="video-panel" class="panel">
-      <!-- Video Translation -->
-      <section class="card">
-        <h2 class="text-xl font-semibold mb-3">🎬 Advanced Video Content Translation</h2>
-        <div class="grid lg:grid-cols-2 gap-6">
+        <label class="lbl">Side-by-Side Preview</label>
+        <div class="doc-preview-wrap">
+          <div id="docOriginal" class="doc-preview">Original preview</div>
+          <div id="docTranslated" class="doc-preview">Translated preview</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ VIDEO PANEL ════════════════════════════ -->
+  <div id="video-panel" class="panel">
+    <div class="content">
+      <div class="section-label">Video Content Translation</div>
+
+      <div class="card">
+        <div class="card-title">Video</div>
+
+        <div class="grid2">
           <div>
-            <label class="text-sm text-white/70">Upload video or paste link (YouTube/Vimeo)</label>
-            <input type="file" id="videoFile" accept="video/*" class="mt-2" onchange="handleVideoUpload(event)" />
-            <input id="videoLink" class="input mt-2" placeholder="Paste YouTube/Vimeo link (optional)" />
-            <button class="btn mt-2" onclick="loadVideoFromLink()">Load from Link</button>
-            <div class="mt-3 flex gap-2">
-              <button class="btn-primary" onclick="startVideoTranscription()">Transcribe (play & capture)</button>
-              <button class="btn" onclick="stopVideoTranscription()">Stop Transcription</button>
+            <label class="lbl">Upload Video</label>
+            <input type="file" id="videoFile" accept="video/*" onchange="handleVideoUpload(event)" />
+
+            <label class="lbl">Or Paste Link (YouTube / Vimeo)</label>
+            <input type="text" id="videoLink" placeholder="Paste link here…" />
+            <div class="btn-row">
+              <button class="btn" onclick="loadVideoFromLink()">Load Link</button>
+            </div>
+
+            <div class="btn-row mt-12">
+              <button class="btn-primary" onclick="startVideoTranscription()">Transcribe</button>
+              <button class="btn" onclick="stopVideoTranscription()">Stop</button>
               <button class="btn" onclick="extractOCR()">OCR Frame</button>
             </div>
-            <div class="text-xs text-white/60 mt-2">
-              🎯 Advanced video processing with multi-language subtitle support and OCR integration
-            </div>
+            <div class="text-dim mt-8">🎯 Multi-language subtitle support with OCR integration</div>
           </div>
+
           <div>
-            <label class="text-sm text-white/70">Preview & Subtitle Generator</label>
-            <div class="video-container">
-              <video id="previewVideo" controls class="w-full rounded-xl bg-black">Your browser does not support HTML5 video.</video>
+            <label class="lbl">Preview</label>
+            <div class="video-wrap">
+              <video id="previewVideo" controls playsinline webkit-playsinline>Your browser does not support HTML5 video.</video>
             </div>
-            <div class="mt-3">
-              <label class="text-sm text-white/70">Subtitle Language</label>
-              <select id="subtitleLang" class="input mt-1">
-                <option value="en">English</option>
-                <option value="hi">Hindi</option>
-                <option value="mr">Marathi</option>
-                <option value="gu">Gujarati</option>
-                <option value="ta">Tamil</option>
-                <option value="bn">Bengali</option>
-                <option value="te">Telugu</option>
-                <option value="kn">Kannada</option>
-              </select>
-            </div>
-            <div class="mt-3 flex gap-2">
+
+            <label class="lbl">Subtitle Language</label>
+            <select id="subtitleLang">
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="mr">Marathi</option>
+              <option value="gu">Gujarati</option>
+              <option value="ta">Tamil</option>
+              <option value="bn">Bengali</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+            </select>
+
+            <div class="btn-row">
               <button class="btn" onclick="downloadSRT()">Download SRT</button>
               <button class="btn" onclick="downloadVTT()">Download VTT</button>
             </div>
-            <div id="subtitleEditor" class="mt-3 text-sm text-white/80">Subtitle editor will appear here after transcription.</div>
+
+            <label class="lbl">Subtitle Editor</label>
+            <div id="subtitleEditor" class="output-box tall">Subtitle editor will appear after transcription.</div>
           </div>
         </div>
-      </section>
-      
-      <section class="card">
-        <h2 class="text-xl font-semibold mb-3">🎯 Video Subtitles Generator</h2>
-        <div class="text-sm text-white/80">
-          ✨ Advanced subtitle generation with language options, OCR text extraction, and timestamp synchronization. 
-          Export in multiple formats for professional use.
-        </div>
-      </section>
-    </div>
-
-    <footer id="contact" class="card">
-      <div class="container">
-        <h2 class="section-title text-xl font-semibold mb-3">Contact</h2>
-        <div class="flex gap-3 flex-wrap">
-          <span class="chip bg-accent-600 px-3 py-2 rounded-full text-sm">✉️ 202krishnapatil@gmail.com</span>
-          <span class="chip bg-accent-600 px-3 py-2 rounded-full text-sm">📞 +91 95801 59631</span>
-          <a class="chip bg-accent-600 px-3 py-2 rounded-full text-sm hover:bg-accent-500 transition-colors" target="_blank" rel="noopener" href="https://in.linkedin.com/in/krishna-chandrakant-patil-33969536b">in LinkedIn</a>
-        </div>
-        <p class="muted text-white/60 mt-4">© <span id="y"></span> Krishna Patil • Advanced AI Translation System</p>
       </div>
-    </footer>
+    </div>
   </div>
 
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-title">Krishna Patil — Contact</div>
+    <div class="contact-chips">
+      <a class="chip" href="mailto:krishnapatil@example.com">✉ Email</a>
+      <a class="chip" href="tel:+919580159631">✆ +91 95801 59631</a>
+      <a class="chip" href="https://in.linkedin.com/in/krishna-chandrakant-patil-33969536b" target="_blank" rel="noopener">in LinkedIn</a>
+    </div>
+    <div class="footer-copy">© <span id="y"></span> BHASHA · Advanced AI Translation System</div>
+  </footer>
+
 <script>
-  // Nav tab switching
+  // ─── NAV SWITCHING ───
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
-      this.classList.add('nav-active');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      const panelId = this.getAttribute('data-panel');
-      const panel = document.getElementById(panelId);
-      if (panel) panel.classList.add('active');
+      const panel = document.getElementById(this.dataset.panel);
+      if (panel) { panel.classList.add('active'); window.scrollTo(0,0); }
     });
   });
 
-  // --- Helpers & language locale map ---
+  // ─── HELPERS ───
   const LANG_TO_LOCALE = {
-    en: 'en-US', hi: 'hi-IN', mr: 'mr-IN', gu: 'gu-IN', ta: 'ta-IN',
-    bn: 'bn-IN', te: 'te-IN', kn: 'kn-IN', es: 'es-ES', fr: 'fr-FR',
-    de: 'de-DE', ja: 'ja-JP'
+    en:'en-US', hi:'hi-IN', mr:'mr-IN', gu:'gu-IN', ta:'ta-IN',
+    bn:'bn-IN', te:'te-IN', kn:'kn-IN', auto:'hi-IN'
   };
-
-  function langToLocale(code){
-    if(!code) return 'en-US';
-    if(LANG_TO_LOCALE[code]) return LANG_TO_LOCALE[code];
-    // if user passed e.g. "en-US" already, return it
-    if(code.includes('-')) return code;
-    return code + '-IN'; // fallback (for many Indian langs)
-  }
-
+  function langToLocale(c){ return LANG_TO_LOCALE[c] || (c&&c.includes('-')?c:(c||'en')+'-IN'); }
   function $id(id){ return document.getElementById(id); }
 
-  // Fixed translation parsing function
-  function parseGoogleTranslate(data) {
-    try {
-      // Handle the current response format
-      if (Array.isArray(data) && data.length > 0) {
-        if (Array.isArray(data[0])) {
-          return data[0].map(segment => {
-            if (Array.isArray(segment) && segment[0]) {
-              return segment[0];
-            }
-            return '';
-          }).join('');
-        }
+  // ─── PARSE GOOGLE TRANSLATE ───
+  function parseGoogleTranslate(data){
+    try{
+      if(Array.isArray(data) && data.length>0 && Array.isArray(data[0])){
+        return data[0].map(s=>Array.isArray(s)&&s[0]?s[0]:'').join('');
       }
-      
-      // Handle older formats
-      if (data && data.responseData && data.responseData.translatedText) {
-        return data.responseData.translatedText;
-      }
-      
+      if(data&&data.responseData&&data.responseData.translatedText) return data.responseData.translatedText;
       return '';
-    } catch (e) {
-      console.error('Error parsing translation response:', e);
-      return '';
-    }
+    }catch(e){ console.error('parse error',e); return ''; }
   }
 
-  // Fixed translation function with CORS proxy
+  // ─── TRANSLATE TEXT ───
   async function translateText(){
     const input = $id('inputText').value.trim();
     const fromLang = $id('fromLang').value || 'auto';
-    const toLang = $id('toLang').value || 'en';
-    
-    if(!input){ 
-      alert('Please enter some text.'); 
-      return ''; 
-    }
+    const toLang = $id('toLang').value || 'hi';
+    if(!input){ showToast('Please enter some text.','warning'); return ''; }
 
-    const domain = $id('domain') ? $id('domain').value : 'General';
-    const contextual = (domain && domain !== 'General') ? `[Context:${domain}] ${input}` : input;
+    const domain = $id('domain')?$id('domain').value:'General';
+    const q = (domain&&domain!=='General')?`[Context:${domain}] ${input}`:input;
 
-    // Use CORS proxy to bypass restrictions
-    const proxyUrl = 'https://api.allorigins.win/raw?url=';
-    const targetUrl = encodeURIComponent(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${contextual}`
-    );
-    
-    const url = proxyUrl + targetUrl;
+    const btn = document.querySelector('#text-panel .btn-primary');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span>Translating…';
+    btn.disabled = true;
 
-    try {
-      // Show loading state
-      const translateBtn = document.querySelector('.btn-primary');
-      const originalText = translateBtn.innerHTML;
-      translateBtn.innerHTML = 'Translating...';
-      translateBtn.disabled = true;
-      
+    try{
+      const url = 'https://api.allorigins.win/raw?url='+encodeURIComponent(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${encodeURIComponent(q)}`
+      );
       const res = await fetch(url);
       if(!res.ok) throw new Error('HTTP '+res.status);
-      
       const data = await res.json();
-      const translated = parseGoogleTranslate(data) || '';
-      
-      $id('outputText').value = translated;
-      
-      // Restore button state
-      translateBtn.innerHTML = originalText;
-      translateBtn.disabled = false;
-      
-      return translated;
-    } catch(err){
-      console.error('Translate error', err);
-      
-      // Restore button state
-      const translateBtn = document.querySelector('.btn-primary');
-      translateBtn.innerHTML = 'Translate ▶';
-      translateBtn.disabled = false;
-      
-      alert('Translation failed: ' + (err.message || err));
+      const out = parseGoogleTranslate(data)||'';
+      $id('outputText').value = out;
+      btn.innerHTML = orig; btn.disabled = false;
+      return out;
+    }catch(err){
+      btn.innerHTML = orig; btn.disabled = false;
+      showToast('Translation failed: '+err.message,'error');
       return '';
     }
   }
 
-  // small rule maps for rewriteStyle (expand these for your demo)
+  // ─── REWRITE RULES ───
   const RULES = {
-    en: {
-      formal: {
-        "hi":"hello", "hey":"hello", "thanks":"thank you", "gonna":"going to", "wanna":"want to", "ok":"okay"
-      },
-      informal: {
-        "hello":"hey", "please inform me":"let me know", "please":"pls", "do not":"don't"
-      }
-    },
-    hi: {
-      formal: { "हाय":"नमस्कार", "हेलो":"नमस्कार", "बताओ":"कृपया बताइए" },
-      informal: { "नमस्कार":"हाय", "कृपया":"प्लीज" }
-    },
-    default: { formal: {}, informal: {} }
+    en:{ formal:{"hi":"hello","hey":"hello","thanks":"thank you","gonna":"going to","wanna":"want to","ok":"okay"},informal:{"hello":"hey","please inform me":"let me know","please":"pls","do not":"don't"} },
+    hi:{ formal:{"हाय":"नमस्कार","हेलो":"नमस्कार","बताओ":"कृपया बताइए"},informal:{"नमस्कार":"हाय","कृपया":"प्लीज"} },
+    default:{ formal:{},informal:{} }
   };
-
-  // simple grammar heuristics per language
-  function grammarFixSimple(text, lang){
-    if(!text) return text;
-    lang = (lang||'en').toLowerCase();
-    // English: punctuation/spacing, sentence capitalization
-    if(lang === 'en'){
-      let t = text.replace(/\s+/g,' ').trim();
-      t = t.replace(/\s+([,?.!;:])/g,'$1'); // fix spaces before punctuation
-      t = t.replace(/([.!?])\s*([a-z])/g, (m,p,c)=> p + ' ' + c.toUpperCase()); // capitalize after sentence end
-      t = t.replace(/^([a-z])/,(m,c)=> c.toUpperCase()); // capitalize first char
-      t = t.replace(/(\s)+/g,' ');
-      return t;
-    }
-    // Devanagari / Indian languages: normalize spaces & punctuation
-    if(['hi','mr','gu','bn','te','kn','ta'].includes(lang)){
-      let t = text.replace(/\s+/g,' ').trim();
-      t = t.replace(/\s+([,।!?])/g,'$1');
-      return t;
-    }
-    // fallback generic normalization
-    return text.replace(/\s+/g,' ').trim();
-  }
-
-  /* -------------------- Grammar Fix -------------------- */
-  /* This now: 1) gets the translated text (in target language) and 2) runs grammar heuristics */
-  async function grammarFix(){
-    // get a translated base (ensures we're fixing the selected output language)
-    const translated = await translateText();
-    if(!translated) return;
-    const toLang = $id('toLang').value || 'en';
-    const fixed = grammarFixSimple(translated, toLang);
-    $id('outputText').value = fixed;
-  }
-
-  /* -------------------- Rewrite (formal/informal) -------------------- */
-  async function rewriteStyle(style){
-    // style: 'formal' or 'informal'
-    const translated = await translateText();
-    if(!translated) return;
-    const toLang = $id('toLang').value || 'en';
-    const rules = RULES[toLang] || RULES.default;
-    let out = translated;
-    if(style === 'formal' && rules.formal) out = applyReplacements(out, rules.formal);
-    else if(style === 'informal' && rules.informal) out = applyReplacements(out, rules.informal);
-    // apply a grammar normalization afterwards
-    out = grammarFixSimple(out, toLang);
-    $id('outputText').value = out;
-  }
-  
-  function applyReplacements(text, replacements) {
-    if (!replacements || typeof replacements !== 'object') return text;
-    let out = text;
-    const keys = Object.keys(replacements).sort((a, b) => b.length - a.length);
-    for (const k of keys) {
-      if (!k) continue;
-      const v = replacements[k];
-      const re = new RegExp('\\b' + escapeRegex(k) + '\\b', 'gi');
-      out = out.replace(re, v);
-    }
+  function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+  function applyReplacements(text,reps){
+    if(!reps) return text;
+    let out=text;
+    Object.keys(reps).sort((a,b)=>b.length-a.length).forEach(k=>{
+      if(!k) return;
+      out=out.replace(new RegExp('\\b'+escapeRegex(k)+'\\b','gi'),reps[k]);
+    });
     return out;
   }
 
-  function escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function grammarFixSimple(text,lang){
+    if(!text) return text;
+    lang=(lang||'en').toLowerCase();
+    if(lang==='en'){
+      let t=text.replace(/\s+/g,' ').trim();
+      t=t.replace(/\s+([,?.!;:])/g,'$1');
+      t=t.replace(/([.!?])\s*([a-z])/g,(m,p,c)=>p+' '+c.toUpperCase());
+      t=t.replace(/^([a-z])/,(m,c)=>c.toUpperCase());
+      return t;
+    }
+    if(['hi','mr','gu','bn','te','kn','ta'].includes(lang)){
+      return text.replace(/\s+/g,' ').trim().replace(/\s+([,।!?])/g,'$1');
+    }
+    return text.replace(/\s+/g,' ').trim();
   }
 
-  /* -------------------- Enhanced Speech Recognition / Live Translate -------------------- */
-  let recognition = null;
+  async function grammarFix(){
+    const t=await translateText(); if(!t) return;
+    $id('outputText').value=grammarFixSimple(t,$id('toLang').value||'en');
+  }
+  async function rewriteStyle(style){
+    const t=await translateText(); if(!t) return;
+    const lang=$id('toLang').value||'en';
+    const rules=RULES[lang]||RULES.default;
+    let out=t;
+    if(style==='formal'&&rules.formal) out=applyReplacements(out,rules.formal);
+    else if(style==='informal'&&rules.informal) out=applyReplacements(out,rules.informal);
+    $id('outputText').value=grammarFixSimple(out,lang);
+  }
 
+  // ─── TONE ───
+  function setTone(tone,btn){
+    document.querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('selected'));
+    if(btn) btn.classList.add('selected');
+    console.log('Tone:',tone);
+  }
+
+  // ─── SPEECH RECOGNITION ───
+  let recognition=null;
   function startListening(){
-    // Enhanced browser compatibility check
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if(!SpeechRecognition){ 
-      // Provide alternative solutions for unsupported browsers
-      const alternatives = [
-        'Speech Recognition is not supported in this browser.',
-        'Please try:',
-        '• Chrome/Edge (recommended)',
-        '• Firefox with speech recognition extension',
-        '• Use text input instead',
-        '• Check microphone permissions'
-      ].join('\n');
-      
-      alert(alternatives);
-      return; 
-    }
-    
-    if(recognition){ recognition.stop(); recognition = null; }
-    
-    try {
-      recognition = new SpeechRecognition();
-      const from = $id('fromLang').value || 'en';
-      recognition.lang = langToLocale(from);
-      recognition.interimResults = true;
-      recognition.continuous = true;
-
-      recognition.onresult = (event) => {
-        let transcript = '';
-        for(let i = event.resultIndex; i < event.results.length; ++i){
-          transcript += event.results[i][0].transcript;
-        }
-        // show interim transcripts in input box (non-final)
-        $id('inputText').value = transcript;
-        
-        // Update UI to show recognition is active
-        const micBtn = document.getElementById('micBtn');
-        if (micBtn) {
-          micBtn.innerHTML = '🎙️ Listening...';
-          micBtn.classList.add('btn-primary');
-          micBtn.classList.remove('btn');
-        }
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ showToast('Speech Recognition not supported. Use Chrome/Edge.','warning'); return; }
+    if(recognition){ recognition.stop(); recognition=null; }
+    try{
+      recognition=new SR();
+      recognition.lang=langToLocale($id('fromLang').value||'en');
+      recognition.interimResults=true;
+      recognition.continuous=true;
+      recognition.onresult=(e)=>{
+        let t='';
+        for(let i=e.resultIndex;i<e.results.length;++i) t+=e.results[i][0].transcript;
+        $id('inputText').value=t;
+        $id('micBtn').textContent='🔴 Listening…';
+        $id('micBtn').classList.add('active-mic');
       };
-      
-      recognition.onerror = (e) => {
-        console.error('rec error', e);
-        let errorMessage = 'Speech recognition error: ';
-        
-        switch(e.error) {
-          case 'not-allowed':
-            errorMessage += 'Microphone access denied. Please allow microphone access.';
-            break;
-          case 'no-speech':
-            errorMessage += 'No speech detected. Please speak clearly.';
-            break;
-          case 'audio-capture':
-            errorMessage += 'Audio capture failed. Check your microphone.';
-            break;
-          case 'network':
-            errorMessage += 'Network error. Check your internet connection.';
-            break;
-          default:
-            errorMessage += e.error;
-        }
-        
-        alert(errorMessage);
-        resetMicButton();
-      };
-      
-      recognition.onend = () => {
-        console.log('recognition ended');
-        resetMicButton();
-      };
-      
+      recognition.onerror=(e)=>{ showToast('Mic error: '+e.error,'error'); resetMicBtn(); };
+      recognition.onend=()=>resetMicBtn();
       recognition.start();
-      
-    } catch (err) {
-      console.error('Speech recognition setup failed:', err);
-      alert('Speech recognition setup failed: ' + err.message);
-    }
+    }catch(e){ showToast('Mic setup failed: '+e.message,'error'); }
   }
-
-  function resetMicButton() {
-    const micBtn = document.getElementById('micBtn');
-    if (micBtn) {
-      micBtn.innerHTML = '🎙 Start Mic';
-      micBtn.classList.remove('btn-primary');
-      micBtn.classList.add('btn');
-    }
-  }
+  function resetMicBtn(){ $id('micBtn').textContent='🎙 Mic'; $id('micBtn').classList.remove('active-mic'); }
   function stopListening(){ if(recognition){ recognition.stop(); recognition=null; } }
 
-  let liveRec = null;
+  // ─── LIVE TRANSLATE ───
+  let liveRec=null;
   function startTranslateLive(){
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SpeechRecognition){ alert('Speech Recognition not supported'); return; }
-    if(liveRec){ liveRec.stop(); liveRec = null; }
-    
-    liveRec = new SpeechRecognition(); 
-    liveRec.continuous = true; 
-    liveRec.interimResults = true; 
-    
-    // Use the live speech language selection
-    const from = document.getElementById('liveSpeechLang').value || 'auto';
-    liveRec.lang = langToLocale(from);
-
-    liveRec.onresult = async (e) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
-      
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ showToast('Speech Recognition not supported','warning'); return; }
+    if(liveRec){ liveRec.stop(); liveRec=null; }
+    liveRec=new SR();
+    liveRec.continuous=true; liveRec.interimResults=true;
+    liveRec.lang=langToLocale($id('liveSpeechLang').value||'en');
+    liveRec.onresult=async(e)=>{
+      let fin='',interim='';
       for(let i=0;i<e.results.length;i++){
-        const res = e.results[i];
-        if(res.isFinal){ 
-          finalTranscript += res[0].transcript + ' '; 
-        } else {
-          interimTranscript += res[0].transcript;
-        }
+        const r=e.results[i];
+        if(r.isFinal) fin+=r[0].transcript+' ';
+        else interim+=r[0].transcript;
       }
-      
-      // Display both interim and final results
-      const liveTranscriptDiv = document.getElementById('liveTranscript');
-      if (liveTranscriptDiv) {
-        liveTranscriptDiv.innerHTML = `
-          <div class="text-white/60 text-sm mb-2">Interim: ${interimTranscript}</div>
-          <div class="text-white text-sm">Final: ${finalTranscript}</div>
-        `;
-      }
-      
-      if(finalTranscript.trim()){
-        // Update main input text
-        const inputText = document.getElementById('inputText');
-        if (inputText) inputText.value = finalTranscript;
-        
-        // Auto-translate if target language is set
-        try{ 
-          await translateText(); 
-        } catch(ex){ 
-          console.error('Live translation error:', ex); 
-        }
-      }
+      $id('liveTranscript').innerHTML=`<div class="text-dim">Interim: ${interim}</div><div>Final: ${fin}</div>`;
+      if(fin.trim()){ $id('inputText').value=fin; try{ await translateText(); }catch(ex){ console.error(ex); } }
     };
-    
-    liveRec.onerror = (ev)=> {
-      console.error('liveRec err', ev);
-      let errorMessage = 'Speech recognition error: ';
-      
-      switch(ev.error) {
-        case 'not-allowed':
-          errorMessage += 'Microphone access denied. Please allow microphone access.';
-          break;
-        case 'no-speech':
-          errorMessage += 'No speech detected. Please speak clearly.';
-          break;
-        case 'audio-capture':
-          errorMessage += 'Audio capture failed. Check your microphone.';
-          break;
-        case 'network':
-          errorMessage += 'Network error. Check your internet connection.';
-          break;
-        default:
-          errorMessage += ev.error;
-      }
-      
-      alert(errorMessage);
-    };
-    
-    liveRec.onend = () => {
-      console.log('Live speech recognition ended');
-    };
-    
+    liveRec.onerror=(ev)=>showToast('Live mic error: '+ev.error,'error');
+    liveRec.onend=()=>console.log('Live rec ended');
     liveRec.start();
   }
   function stopTranslateLive(){ if(liveRec){ liveRec.stop(); liveRec=null; } }
 
-  /* -------------------- Speak output -------------------- */
+  // ─── SPEAK / COPY / DOWNLOAD ───
   function speakText(){
-    const text = $id('outputText').value;
-    const to = $id('toLang').value || 'en';
-    if(!text) return alert('Nothing to speak');
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = langToLocale(to);
+    const text=$id('outputText').value;
+    if(!text){ showToast('Nothing to speak','warning'); return; }
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=langToLocale($id('toLang').value||'en');
     speechSynthesis.speak(u);
   }
-
-  /* -------------------- Small utilities (copy/download) -------------------- */
   function clearInput(){ $id('inputText').value=''; }
-  function copyOut(){ navigator.clipboard.writeText($id('outputText').value||''); }
-  function downloadTxt(name, text){
-    const a = document.createElement('a');
-    const blob = new Blob([text||''], {type:'text/plain'});
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
+  function copyOut(){ 
+    const v=$id('outputText').value||'';
+    if(!v){ showToast('Nothing to copy','warning'); return; }
+    navigator.clipboard.writeText(v).then(()=>showToast('Copied!','success')).catch(()=>showToast('Copy failed','error'));
+  }
+  function downloadTxt(name,text){
+    if(!text){ showToast('Nothing to download','warning'); return; }
+    const a=document.createElement('a');
+    const blob=new Blob([text||''],{type:'text/plain'});
+    a.href=URL.createObjectURL(blob); a.download=name; a.click();
     URL.revokeObjectURL(a.href);
   }
 
-  // (optional) export some functions to window if your HTML uses inline onclick="..."
-  window.translateText = translateText;
-  window.grammarFix = grammarFix;
-  window.rewriteStyle = rewriteStyle;
-  window.startListening = startListening;
-  window.stopListening = stopListening;
-  window.startTranslateLive = startTranslateLive;
-  window.stopTranslateLive = stopTranslateLive;
-  window.speakText = speakText;
-  window.clearInput = clearInput;
-  window.copyOut = copyOut;
-  window.downloadTxt = downloadTxt;
-
-  // Add missing functions
-  function setTone(tone) {
-    // This function can be expanded to apply tone-specific translations
-    console.log('Tone set to:', tone);
-    // For now, just log the tone selection
-  }
-
-  // Export all functions to window for inline onclick handlers
-  window.setTone = setTone;
-  window.handleDocUpload = handleDocUpload;
-  window.translateDocument = translateDocument;
-  window.downloadTranslatedPDF = downloadTranslatedPDF;
-  window.handleAudioUpload = handleAudioUpload;
-  window.transcribeAudio = transcribeAudio;
-  window.transcribeAudioWithSpeechAPI = transcribeAudioWithSpeechAPI;
-  window.translateAudioFile = translateAudioFile;
-  window.downloadAudioTranscript = downloadAudioTranscript;
-  window.toggleAudioPlayback = toggleAudioPlayback;
-  window.stopAudioPlayback = stopAudioPlayback;
-  window.restartAudioPlayback = restartAudioPlayback;
-  window.handleVideoUpload = handleVideoUpload;
-  window.startVideoTranscription = startVideoTranscription;
-  window.stopVideoTranscription = stopVideoTranscription;
-  window.extractOCR = extractOCR;
-  window.renderSubtitleEditor = renderSubtitleEditor;
-  window.downloadSRT = downloadSRT;
-  window.downloadVTT = downloadVTT;
-  window.toSrtTime = toSrtTime;
-  window.loadVideoFromLink = loadVideoFromLink;
-
-  // Function to handle video links (YouTube/Vimeo)
-  function loadVideoFromLink() {
-    const link = document.getElementById('videoLink').value.trim();
-    if (!link) {
-      alert('Please enter a video link');
-      return;
-    }
-    
-    // For now, show a message about link handling
-    // In a production environment, you would need to implement proper video extraction
-    const subtitleEditor = document.getElementById('subtitleEditor');
-    subtitleEditor.innerHTML = '<div class="text-yellow-400 text-sm">⚠️ Video link processing requires server-side implementation. For now, please upload video files directly.</div>';
-    
-    // Clear the link input
-    document.getElementById('videoLink').value = '';
-  }
-
-  // Initialize the year in footer and add comprehensive error handling
-  document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('y').textContent = new Date().getFullYear();
-    
-    // Check browser compatibility
-    checkBrowserCompatibility();
-    
-    // Add user guidance
-    addUserGuidance();
-  });
-
-  function checkBrowserCompatibility() {
-    const issues = [];
-    
-    // Check Speech Recognition
-    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-      issues.push('Speech Recognition not supported - Voice features limited');
-    }
-    
-    // Check File API
-    if (!window.FileReader) {
-      issues.push('File API not supported - Document upload limited');
-    }
-    
-    // Check Web Audio API
-    if (!window.AudioContext && !window.webkitAudioContext) {
-      issues.push('Web Audio API not supported - Audio processing limited');
-    }
-    
-    if (issues.length > 0) {
-      console.warn('Browser compatibility issues:', issues);
-      
-      // Show user-friendly warning
-      const warningDiv = document.createElement('div');
-      warningDiv.className = 'message warning';
-      warningDiv.innerHTML = `
-        <div class="flex items-center space-x-2">
-          <span>⚠️</span>
-          <span><strong>Browser Compatibility Notice:</strong> Some features may be limited in your browser.</span>
-        </div>
-        <div class="text-xs mt-2">For best experience, use Chrome, Edge, or Firefox with latest updates.</div>
-      `;
-      
-      // Insert after header
-      const header = document.querySelector('header');
-      if (header) {
-        header.parentNode.insertBefore(warningDiv, header.nextSibling);
-      }
-    }
-  }
-
-  function addUserGuidance() {
-    // Add helpful tooltips and guidance
-    const tooltips = [
-      { selector: '#fromLang', text: 'Select source language or use Auto Detect' },
-      { selector: '#toLang', text: 'Choose target language for translation' },
-      { selector: '#domain', text: 'Select context for better translation accuracy' },
-      { selector: '#micBtn', text: 'Click to start voice input (requires microphone permission)' }
-    ];
-    
-    tooltips.forEach(tooltip => {
-      const element = document.querySelector(tooltip.selector);
-      if (element) {
-        element.title = tooltip.text;
-      }
-    });
-  }
-
-  // --- Document parsing ---
-  let lastDocText = '';
+  // ─── DOCUMENT ───
+  let lastDocText='';
   async function handleDocUpload(e){
-    const f = e.target.files[0]; if(!f) return;
-    const orig = document.getElementById('docOriginal'); const translated = document.getElementById('docTranslated');
-    orig.innerHTML = 'Loading...'; translated.innerHTML = '';
-    const name = f.name.toLowerCase();
-    
-    try {
+    const f=e.target.files[0]; if(!f) return;
+    const orig=$id('docOriginal'),trans=$id('docTranslated');
+    orig.innerHTML='<span class="text-dim">Loading…</span>'; trans.innerHTML='';
+    const name=f.name.toLowerCase();
+    try{
       if(name.endsWith('.docx')){
-        const arrayBuffer = await f.arrayBuffer();
-        const res = await mammoth.convertToHtml({arrayBuffer});
-        orig.innerHTML = res.value;
-        lastDocText = (res.value || '').replace(/<[^>]*>/g,' ');
+        const ab=await f.arrayBuffer();
+        const res=await mammoth.convertToHtml({arrayBuffer:ab});
+        orig.innerHTML=res.value;
+        lastDocText=(res.value||'').replace(/<[^>]*>/g,' ');
       }else if(name.endsWith('.pdf')){
-        const arrayBuffer = await f.arrayBuffer();
-        const uint8 = new Uint8Array(arrayBuffer);
-        const loadingTask = pdfjsLib.getDocument({data:uint8});
-        const pdf = await loadingTask.promise;
+        const ab=await f.arrayBuffer();
+        const pdf=await pdfjsLib.getDocument({data:new Uint8Array(ab)}).promise;
         let full='';
-        for(let i=1;i<=pdf.numPages;i++){ 
-          const page = await pdf.getPage(i); 
-          const content = await page.getTextContent(); 
-          const strs = content.items.map(it=> it.str).join(' '); 
-          full += ' ' + strs; 
+        for(let i=1;i<=pdf.numPages;i++){
+          const page=await pdf.getPage(i);
+          const content=await page.getTextContent();
+          full+=' '+content.items.map(it=>it.str).join(' ');
         }
-        orig.innerText = full.slice(0, 20000);
-        lastDocText = full;
+        orig.innerText=full.slice(0,20000); lastDocText=full;
       }else if(name.endsWith('.pptx')){
-        const arrayBuffer = await f.arrayBuffer();
-        const zip = await JSZip.loadAsync(arrayBuffer);
-        const slides = Object.keys(zip.files).filter(p=> p.startsWith('ppt/slides/slide'));
+        const ab=await f.arrayBuffer();
+        const zip=await JSZip.loadAsync(ab);
         let text='';
-        for(const s of slides){ 
-          const content = await zip.files[s].async('string');
-          const t = (content.match(/<a:t>(.*?)<\/a:t>/g)||[]).map(x=> x.replace(/<.*?>/g,'')).join(' ');
-          text += ' ' + t;
-        }
-        orig.innerText = text.slice(0,20000);
-        lastDocText = text;
-      }else{
-        orig.innerText = 'Unsupported file format';
-      }
-    } catch(err) {
-      orig.innerText = 'File parsing failed: ' + err.message;
-      console.error('Document parsing error:', err);
-    }
+        Object.keys(zip.files).filter(p=>p.startsWith('ppt/slides/slide')).forEach(async s=>{
+          const c=await zip.files[s].async('string');
+          text+=' '+(c.match(/<a:t>(.*?)<\/a:t>/g)||[]).map(x=>x.replace(/<.*?>/g,'')).join(' ');
+        });
+        setTimeout(()=>{ orig.innerText=text.slice(0,20000); lastDocText=text; },500);
+      }else{ orig.innerText='Unsupported format. Use PDF, DOCX, or PPTX.'; }
+    }catch(err){ orig.innerText='Parsing failed: '+err.message; console.error(err); }
   }
 
-  // --- Enhanced Document Translation with PDF Generation ---
   async function translateDocument(){
-    if(!lastDocText){ alert('No document text loaded (upload a file first)'); return; }
-    
-    const translatedDiv = document.getElementById('docTranslated');
-    translatedDiv.innerHTML = '<div class="text-yellow-400">🔄 Translating document... Please wait.</div>';
-    
-    const tgt = document.getElementById('toLang').value || 'en';
-    const from = document.getElementById('fromLang').value || 'auto';
-    const chunks = chunkString(lastDocText, 4000);
-    let translated = '';
-    
-    try {
-      for(let i = 0; i < chunks.length; i++){
-        const c = chunks[i];
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${tgt}&dt=t&q=${encodeURIComponent(c)}`;
-        
-        const r = await fetch(url); 
-        const d = await r.json(); 
-        
-        if(Array.isArray(d) && d[0] && Array.isArray(d[0])){
-          d[0].forEach(segment => {
-            if(Array.isArray(segment) && segment[0]){
-              translated += segment[0];
-            }
-          });
+    if(!lastDocText){ showToast('No document loaded. Upload a file first.','warning'); return; }
+    const tgt=$id('toLang').value||'hi';
+    const from=$id('fromLang').value||'auto';
+    const chunks=chunkString(lastDocText,4000);
+    let translated='';
+    const trans=$id('docTranslated');
+    trans.innerHTML='<span class="text-dim">Translating… 0%</span>';
+    try{
+      for(let i=0;i<chunks.length;i++){
+        const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${tgt}&dt=t&q=${encodeURIComponent(chunks[i])}`;
+        const r=await fetch(url); const d=await r.json();
+        if(Array.isArray(d)&&d[0]&&Array.isArray(d[0])){
+          d[0].forEach(seg=>{ if(Array.isArray(seg)&&seg[0]) translated+=seg[0]; });
         }
-        
-        // Update progress
-        const progress = Math.round(((i + 1) / chunks.length) * 100);
-        translatedDiv.innerHTML = `<div class="text-blue-400">🔄 Translating... ${progress}% complete</div>`;
+        const pct=Math.round(((i+1)/chunks.length)*100);
+        trans.innerHTML=`<span class="text-dim">Translating… ${pct}%</span>`;
       }
-      
-      // Display translated text
-      translatedDiv.innerHTML = `
-        <div class="text-green-400 mb-2">✅ Translation complete!</div>
-        <div class="text-white/80">${translated}</div>
-      `;
-      
-      // Store translated text for PDF generation
-      window.translatedDocumentText = translated;
-      window.originalDocumentText = lastDocText;
-      
-    } catch(e){ 
-      console.error('Document translation failed:', e); 
-      translatedDiv.innerHTML = '<div class="text-red-400">❌ Translation failed: ' + e.message + '</div>';
-    }
+      trans.innerHTML=`<div class="msg success" style="margin-bottom:8px;">✅ Translation complete!</div><div>${translated}</div>`;
+      window.translatedDocumentText=translated;
+      window.originalDocumentText=lastDocText;
+    }catch(e){ trans.innerHTML=`<div class="msg error">❌ ${e.message}</div>`; }
   }
-  
-  async function downloadTranslatedPDF() {
-    if (!window.translatedDocumentText) {
-      alert('Please translate a document first');
-      return;
-    }
-    
-    try {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      // Set font for better language support
-      doc.setFont('helvetica');
+
+  async function downloadTranslatedPDF(){
+    if(!window.translatedDocumentText){ showToast('Translate a document first','warning'); return; }
+    try{
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF();
+      doc.setFont('helvetica'); doc.setFontSize(16);
+      doc.text('Translated Document',20,20);
       doc.setFontSize(12);
-      
-      // Add title
-      doc.setFontSize(16);
-      doc.text('Translated Document', 20, 20);
-      doc.setFontSize(12);
-      
-      // Add original and translated text
-      const margin = 20;
-      const lineHeight = 7;
-      let y = 40;
-      
-      // Original text (first page)
-      doc.setFontSize(14);
-      doc.text('Original Text:', margin, y);
-      y += lineHeight;
+      let y=40;
+      doc.setFontSize(14); doc.text('Original:',20,y); y+=8;
       doc.setFontSize(10);
-      
-      const originalLines = doc.splitTextToSize(window.originalDocumentText.substring(0, 1000), 170);
-      doc.text(originalLines, margin, y);
-      y += originalLines.length * lineHeight + 10;
-      
-      // Translated text (continue on same page if space, otherwise new page)
-      if (y > 250) {
-        doc.addPage();
-        y = 20;
-      }
-      
-      doc.setFontSize(14);
-      doc.text('Translated Text:', margin, y);
-      y += lineHeight;
+      const origLines=doc.splitTextToSize(window.originalDocumentText.substring(0,1000),170);
+      doc.text(origLines,20,y); y+=origLines.length*7+10;
+      if(y>250){ doc.addPage(); y=20; }
+      doc.setFontSize(14); doc.text('Translated:',20,y); y+=8;
       doc.setFontSize(10);
-      
-      const translatedLines = doc.splitTextToSize(window.translatedDocumentText, 170);
-      doc.text(translatedLines, margin, y);
-      
-      // Save the PDF
+      const transLines=doc.splitTextToSize(window.translatedDocumentText,170);
+      doc.text(transLines,20,y);
       doc.save('translated_document.pdf');
-      
-    } catch (err) {
-      console.error('PDF generation failed:', err);
-      alert('PDF generation failed: ' + err.message);
-    }
+    }catch(err){ showToast('PDF generation failed: '+err.message,'error'); }
   }
 
-  function chunkString(str, size){ const chunks=[]; for(let i=0;i<str.length;i+=size) chunks.push(str.slice(i,i+size)); return chunks; }
+  function chunkString(str,size){ const c=[]; for(let i=0;i<str.length;i+=size) c.push(str.slice(i,i+size)); return c; }
 
-  let audioFile = null;
-  let wavesurfer = null;
-  let audioTranscript = '';
-  let audioSegments = [];
-  let audioElement = null;
-  let isPlaying = false;
-  
-  function handleAudioUpload(e){ 
-    const f = e.target.files[0]; 
-    if(!f) return; 
-    
-    audioFile = f;
-    
-    // Initialize waveform visualization
-    if (wavesurfer) {
-      wavesurfer.destroy();
-    }
-    
-    try {
-      wavesurfer = WaveSurfer.create({
-        container: '#audioVisualizer',
-        waveColor: '#8b5cf6',
-        progressColor: '#6ef3ff',
-        cursorColor: '#ffffff',
-        barWidth: 2,
-        barRadius: 3,
-        cursorWidth: 1,
-        height: 80,
-        barGap: 3,
-        interact: true,
-        hideScrollbar: true
+  // ─── AUDIO ───
+  let audioFile=null, wavesurfer=null, audioTranscript='', audioSegments=[], audioElement=null, isPlaying=false;
+
+  function handleAudioUpload(e){
+    const f=e.target.files[0]; if(!f) return;
+    audioFile=f;
+    if(wavesurfer){ try{ wavesurfer.destroy(); }catch(ex){} wavesurfer=null; }
+    $id('audioVisualizer').innerHTML='<span class="text-dim" style="font-size:13px;">Initializing waveform…</span>';
+    try{
+      wavesurfer=WaveSurfer.create({
+        container:'#audioVisualizer',
+        waveColor:'#c8b98a',
+        progressColor:'#ffffff',
+        cursorColor:'#a8a49c',
+        barWidth:2,barRadius:3,cursorWidth:1,height:80,barGap:3,
+        interact:true,hideScrollbar:true,backend:'WebAudio'
       });
-      
-      // Load audio file
-      const url = URL.createObjectURL(f);
+      const url=URL.createObjectURL(f);
       wavesurfer.load(url);
-      
-      // Create audio element for playback
-      audioElement = new Audio(url);
-      
-      // Enable playback controls
-      document.getElementById('playPauseBtn').disabled = false;
-      document.getElementById('stopBtn').disabled = false;
-      document.getElementById('restartBtn').disabled = false;
-      
-      // Set up waveform events
-      wavesurfer.on('ready', function() {
-        console.log('Waveform ready');
-      });
-      
-      wavesurfer.on('audioprocess', function(currentTime) {
-        // Update audio element time to sync with waveform
-        if (audioElement && !isPlaying) {
-          audioElement.currentTime = currentTime;
-        }
-      });
-      
-      // Show success message
-      document.getElementById('audioAnalysis').innerHTML = '<div class="text-green-400 text-sm">✅ Audio loaded successfully! Use "Transcribe Audio" to process.</div>';
-      
-      // Clear previous results
-      document.getElementById('transcriptionResults').innerHTML = '<div class="text-white/60 text-sm">Transcription will appear here after processing</div>';
-      
-    } catch (err) {
-      console.error('Waveform creation failed:', err);
-      document.getElementById('audioAnalysis').innerHTML = '<div class="text-red-400 text-sm">❌ Waveform creation failed. Audio file loaded but visualization unavailable.</div>';
+      if(audioElement){ try{ audioElement.src=''; }catch(ex){} }
+      audioElement=new Audio(url);
+      audioElement.onended=()=>{ isPlaying=false; $id('playPauseBtn').textContent='▶ Play'; };
+      $id('playPauseBtn').disabled=false;
+      $id('stopBtn').disabled=false;
+      $id('restartBtn').disabled=false;
+      wavesurfer.on('ready',()=>{ $id('audioAnalysis').innerHTML='<div class="msg success">✅ Audio loaded! Use Transcribe to process.</div>'; });
+      wavesurfer.on('error',(e)=>{ console.error('WaveSurfer error',e); $id('audioAnalysis').innerHTML='<div class="msg warning">⚠️ Waveform visualization failed but audio is loaded.</div>'; });
+    }catch(err){
+      console.error('WaveSurfer init failed:',err);
+      const url=URL.createObjectURL(f);
+      audioElement=new Audio(url);
+      $id('playPauseBtn').disabled=false; $id('stopBtn').disabled=false; $id('restartBtn').disabled=false;
+      $id('audioAnalysis').innerHTML='<div class="msg warning">⚠️ Waveform unavailable, audio loaded for playback.</div>';
     }
   }
-  
-  async function transcribeAudio() {
-    if (!audioFile) {
-      alert('Please upload an audio file first');
-      return;
-    }
-    
-    try {
-      // Show processing status
-      document.getElementById('audioAnalysis').innerHTML = '<div class="text-yellow-400 text-sm">🔄 Processing audio file... Please wait.</div>';
-      
-      // Create audio context for processing
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const arrayBuffer = await audioFile.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      
-      // Extract audio data for analysis
-      const channelData = audioBuffer.getChannelData(0);
-      const sampleRate = audioBuffer.sampleRate;
-      const duration = audioBuffer.duration;
-      
-      // Advanced audio analysis with speech detection
-      const segments = analyzeAudioSegments(channelData, sampleRate, duration);
-      audioSegments = segments;
-      
-      // Generate simulated transcription based on audio analysis
-      audioTranscript = generateSimulatedTranscription(segments, duration);
-      
-      // Display results
-      displayAudioAnalysis(segments, duration);
+
+  async function transcribeAudio(){
+    if(!audioFile){ showToast('Upload an audio file first','warning'); return; }
+    $id('audioAnalysis').innerHTML='<div class="msg info"><span class="spinner"></span>Processing audio…</div>';
+    try{
+      const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      const ab=await audioFile.arrayBuffer();
+      const buf=await ctx.decodeAudioData(ab);
+      const data=buf.getChannelData(0);
+      const rate=buf.sampleRate, dur=buf.duration;
+      const segs=analyzeAudioSegments(data,rate,dur);
+      audioSegments=segs;
+      audioTranscript=generateSimulatedTranscription(segs,dur);
       displayTranscriptionResults(audioTranscript);
-      
-      // Show success message
-      document.getElementById('audioAnalysis').innerHTML = `
-        <div class="text-green-400 text-sm mb-2">✅ Audio analysis complete!</div>
-        <div class="text-white/80 text-sm">
-          Duration: ${duration.toFixed(2)}s<br>
-          Segments detected: ${segments.length}<br>
-          Speech detected: ${segments.filter(s => s.hasSpeech).length} segments
-        </div>
-      `;
-      
-    } catch (err) {
-      console.error('Audio processing failed:', err);
-      document.getElementById('audioAnalysis').innerHTML = '<div class="text-red-400 text-sm">❌ Audio processing failed: ' + err.message + '</div>';
+      const speechSegs=segs.filter(s=>s.hasSpeech);
+      $id('audioAnalysis').innerHTML=`<div class="msg success">✅ Analysis complete!</div><div style="font-size:13px;margin-top:8px;">Duration: ${dur.toFixed(2)}s · Segments: ${segs.length} · Speech: ${speechSegs.length}</div>`;
+    }catch(err){
+      $id('audioAnalysis').innerHTML=`<div class="msg error">❌ ${err.message}</div>`;
     }
   }
-  
-  function analyzeAudioSegments(channelData, sampleRate, duration) {
-    // Advanced segment detection with improved speech analysis
-    const segments = [];
-    const segmentLength = 2; // 2 second segments for better accuracy
-    const samplesPerSegment = segmentLength * sampleRate;
-    
-    for (let i = 0; i < channelData.length; i += samplesPerSegment) {
-      const segmentData = channelData.slice(i, i + samplesPerSegment);
-      const amplitude = Math.sqrt(segmentData.reduce((sum, sample) => sum + sample * sample, 0) / segmentData.length);
-      
-      // Enhanced speech detection with multiple criteria
-      const hasSpeech = detectSpeechSegment(segmentData, sampleRate, amplitude);
-      const speechConfidence = calculateSpeechConfidence(segmentData, sampleRate, amplitude);
-      
-      segments.push({
-        start: i / sampleRate,
-        end: Math.min((i + samplesPerSegment) / sampleRate, duration),
-        amplitude: amplitude,
-        hasSpeech: hasSpeech,
-        speechConfidence: speechConfidence,
-        energy: calculateEnergy(segmentData),
-        frequency: analyzeFrequencyContent(segmentData, sampleRate)
-      });
+
+  function analyzeAudioSegments(channelData,sampleRate,duration){
+    const segs=[],segLen=2,sps=segLen*sampleRate;
+    for(let i=0;i<channelData.length;i+=sps){
+      const sd=channelData.slice(i,i+sps);
+      const amp=Math.sqrt(sd.reduce((s,x)=>s+x*x,0)/sd.length);
+      const hasSpeech=detectSpeechSegment(sd,sampleRate,amp);
+      const speechConfidence=calculateSpeechConfidence(sd,sampleRate,amp);
+      segs.push({start:i/sampleRate,end:Math.min((i+sps)/sampleRate,duration),amplitude:amp,hasSpeech,speechConfidence,energy:calculateEnergy(sd),frequency:analyzeFrequencyContent(sd,sampleRate)});
     }
-    
-    return segments;
+    return segs;
   }
-  
-  function detectSpeechSegment(channelData, sampleRate, amplitude) {
-    // Multi-criteria speech detection
-    const energy = calculateEnergy(channelData);
-    const zeroCrossings = calculateZeroCrossings(channelData);
-    const spectralCentroid = calculateSpectralCentroid(channelData, sampleRate);
-    
-    // Speech typically has:
-    // - Moderate to high amplitude (not too quiet, not too loud)
-    // - Moderate energy levels
-    // - Reasonable zero-crossing rate (indicates frequency content)
-    // - Spectral centroid in human speech range (85-255 Hz for fundamental, 2-8 kHz for formants)
-    
-    const amplitudeOK = amplitude > 0.003 && amplitude < 0.8;
-    const energyOK = energy > 0.0001 && energy < 0.5;
-    const zeroCrossingsOK = zeroCrossings > 100 && zeroCrossings < 5000;
-    const spectralOK = spectralCentroid > 500 && spectralCentroid < 8000;
-    
-    return amplitudeOK && energyOK && zeroCrossingsOK && spectralOK;
+  function detectSpeechSegment(d,sr,amp){
+    const e=calculateEnergy(d),zc=calculateZeroCrossings(d),sc=calculateSpectralCentroid(d,sr);
+    return (amp>0.003&&amp<0.8)&&(e>0.0001&&e<0.5)&&(zc>100&&zc<5000)&&(sc>500&&sc<8000);
   }
-  
-  function calculateSpeechConfidence(channelData, sampleRate, amplitude) {
-    // Calculate confidence score for speech detection
-    const energy = calculateEnergy(channelData);
-    const zeroCrossings = calculateZeroCrossings(channelData);
-    const spectralCentroid = calculateSpectralCentroid(channelData, sampleRate);
-    
-    let confidence = 0;
-    
-    // Amplitude confidence (0-25 points)
-    if (amplitude > 0.01 && amplitude < 0.6) confidence += 25;
-    else if (amplitude > 0.005 && amplitude < 0.8) confidence += 15;
-    
-    // Energy confidence (0-25 points)
-    if (energy > 0.001 && energy < 0.3) confidence += 25;
-    else if (energy > 0.0001 && energy < 0.5) confidence += 15;
-    
-    // Zero-crossing confidence (0-25 points)
-    if (zeroCrossings > 200 && zeroCrossings < 3000) confidence += 25;
-    else if (zeroCrossings > 100 && zeroCrossings < 5000) confidence += 15;
-    
-    // Spectral confidence (0-25 points)
-    if (spectralCentroid > 1000 && spectralCentroid < 6000) confidence += 25;
-    else if (spectralCentroid > 500 && spectralCentroid < 8000) confidence += 15;
-    
-    return Math.min(confidence, 100);
+  function calculateSpeechConfidence(d,sr,amp){
+    let c=0;
+    const e=calculateEnergy(d),zc=calculateZeroCrossings(d),sc=calculateSpectralCentroid(d,sr);
+    if(amp>0.01&&amp<0.6) c+=25; else if(amp>0.005&&amp<0.8) c+=15;
+    if(e>0.001&&e<0.3) c+=25; else if(e>0.0001&&e<0.5) c+=15;
+    if(zc>200&&zc<3000) c+=25; else if(zc>100&&zc<5000) c+=15;
+    if(sc>1000&&sc<6000) c+=25; else if(sc>500&&sc<8000) c+=15;
+    return Math.min(c,100);
   }
-  
-  function calculateZeroCrossings(channelData) {
-    let crossings = 0;
-    for (let i = 1; i < channelData.length; i++) {
-      if ((channelData[i] >= 0 && channelData[i-1] < 0) || 
-          (channelData[i] < 0 && channelData[i-1] >= 0)) {
-        crossings++;
-      }
-    }
-    return crossings;
-  }
-  
-  function calculateSpectralCentroid(channelData, sampleRate) {
-    // Simplified spectral centroid calculation
-    // In production, you'd use FFT for accurate frequency analysis
-    const energy = calculateEnergy(channelData);
-    const zeroCrossings = calculateZeroCrossings(channelData);
-    
-    // Estimate frequency based on zero-crossing rate
-    // Frequency ≈ (zeroCrossings * sampleRate) / (2 * channelData.length)
-    const estimatedFreq = (zeroCrossings * sampleRate) / (2 * channelData.length);
-    
-    return estimatedFreq;
-  }
-  
-  function analyzeFrequencyContent(channelData, sampleRate) {
-    // Basic frequency analysis
-    const zeroCrossings = calculateZeroCrossings(channelData);
-    const estimatedFreq = (zeroCrossings * sampleRate) / (2 * channelData.length);
-    
-    return {
-      dominant: estimatedFreq,
-      range: {
-        low: Math.max(0, estimatedFreq * 0.5),
-        high: Math.min(sampleRate / 2, estimatedFreq * 2)
-      }
-    };
-  }
-  
-  function calculateEnergy(channelData) {
-    return channelData.reduce((sum, sample) => sum + sample * sample, 0) / channelData.length;
-  }
-  
-  function generateSimulatedTranscription(segments, duration) {
-    // Generate realistic transcription based on enhanced audio analysis
-    let transcript = '';
-    let speechSegments = segments.filter(s => s.hasSpeech);
-    let totalSpeechTime = speechSegments.reduce((sum, s) => sum + (s.end - s.start), 0);
-    
-    if (speechSegments.length === 0) {
-      transcript = `[00:00 - ${formatTime(duration)}] Audio content detected but no clear speech patterns identified.\n\n`;
-      return transcript;
-    }
-    
-    // Generate more realistic transcription based on speech characteristics
-    speechSegments.forEach((segment, index) => {
-      const segmentDuration = segment.end - segment.start;
-      const confidence = segment.speechConfidence;
-      const frequency = segment.frequency;
-      
-      // Estimate words based on duration and confidence
-      const wordsPerSecond = Math.max(1, Math.min(3, confidence / 25)); // 1-3 words per second based on confidence
-      const estimatedWords = Math.floor(segmentDuration * wordsPerSecond);
-      
-      // Generate context-aware placeholder text
-      const placeholderText = generateContextualPlaceholderText(estimatedWords, segment, index, speechSegments.length);
-      
-      transcript += `[${formatTime(segment.start)} - ${formatTime(segment.end)}] ${placeholderText}\n`;
-      transcript += `  Confidence: ${confidence}% | Frequency: ${Math.round(frequency.dominant)}Hz\n\n`;
+  function calculateZeroCrossings(d){ let c=0; for(let i=1;i<d.length;i++) if((d[i]>=0&&d[i-1]<0)||(d[i]<0&&d[i-1]>=0)) c++; return c; }
+  function calculateSpectralCentroid(d,sr){ const zc=calculateZeroCrossings(d); return (zc*sr)/(2*d.length); }
+  function analyzeFrequencyContent(d,sr){ const f=(calculateZeroCrossings(d)*sr)/(2*d.length); return {dominant:f,range:{low:Math.max(0,f*0.5),high:Math.min(sr/2,f*2)}}; }
+  function calculateEnergy(d){ return d.reduce((s,x)=>s+x*x,0)/d.length; }
+  function formatTime(s){ const m=Math.floor(s/60); return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`; }
+
+  function generateSimulatedTranscription(segs,dur){
+    let t=''; const sp=segs.filter(s=>s.hasSpeech);
+    if(!sp.length) return `[00:00 - ${formatTime(dur)}] Audio detected but no clear speech patterns.\n\n`;
+    const tmpl={high:["Clear speech detected with high confidence.","Strong speech signal — clear pronunciation and rhythm."],medium:["Moderate speech clarity. Some background noise may be present.","Speech patterns with medium confidence."],low:["Speech detected with lower confidence.","Faint speech patterns — background noise may affect clarity."]};
+    sp.forEach((s,i)=>{
+      const lvl=s.speechConfidence>=75?'high':s.speechConfidence<=50?'low':'medium';
+      const txt=tmpl[lvl][i%tmpl[lvl].length];
+      t+=`[${formatTime(s.start)} - ${formatTime(s.end)}] ${txt}\n  Confidence: ${s.speechConfidence}% | ~${Math.round(s.frequency.dominant)}Hz\n\n`;
     });
-    
-    // Add summary
-    transcript += `\n--- TRANSCRIPTION SUMMARY ---\n`;
-    transcript += `Total Duration: ${formatTime(duration)}\n`;
-    transcript += `Speech Segments: ${speechSegments.length}\n`;
-    transcript += `Speech Time: ${formatTime(totalSpeechTime)}\n`;
-    transcript += `Average Confidence: ${Math.round(speechSegments.reduce((sum, s) => sum + s.speechConfidence, 0) / speechSegments.length)}%\n`;
-    
-    return transcript;
+    t+=`\n--- SUMMARY ---\nTotal Duration: ${formatTime(dur)}\nSpeech Segments: ${sp.length}\nAvg Confidence: ${Math.round(sp.reduce((a,s)=>a+s.speechConfidence,0)/sp.length)}%\n`;
+    return t;
   }
-  
-  function generateContextualPlaceholderText(wordCount, segment, index, totalSegments) {
-    // Generate context-aware placeholder text based on segment characteristics
-    const templates = {
-      high: [
-        "Clear speech detected with high confidence. This segment contains natural language patterns typical of human conversation.",
-        "Strong speech signal identified. The audio shows clear pronunciation and natural speech rhythm.",
-        "High-quality speech segment detected. Language patterns indicate clear communication."
-      ],
-      medium: [
-        "Moderate speech clarity detected. Some background noise may be present but speech is distinguishable.",
-        "Speech patterns identified with medium confidence. Content appears to be conversational.",
-        "Clear speech with moderate background interference. Language patterns are recognizable."
-      ],
-      low: [
-        "Speech detected with lower confidence. Background noise may affect clarity.",
-        "Faint speech patterns identified. Some words may be difficult to distinguish.",
-        "Speech present but with reduced clarity. Content may require enhanced processing."
-      ]
-    };
-    
-    // Determine confidence level
-    let confidenceLevel = 'medium';
-    if (segment.speechConfidence >= 75) confidenceLevel = 'high';
-    else if (segment.speechConfidence <= 50) confidenceLevel = 'low';
-    
-    // Select template based on confidence and position
-    const levelTemplates = templates[confidenceLevel];
-    const selected = levelTemplates[index % levelTemplates.length];
-    
-    // Adjust text length based on word count
-    const targetLength = Math.max(20, wordCount * 4);
-    return selected.substring(0, Math.min(selected.length, targetLength));
+
+  function displayTranscriptionResults(tr){
+    $id('transcriptionResults').innerHTML=`<div class="msg success" style="margin-bottom:8px;">📝 Transcription Ready</div><pre style="white-space:pre-wrap;font-size:12px;color:#a8a49c;">${tr}</pre>`;
   }
-  
-  function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+  async function translateTextForAudio(text,from,to){
+    const url='https://api.allorigins.win/raw?url='+encodeURIComponent(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`);
+    const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
+    return parseGoogleTranslate(await res.json())||text;
   }
-  
-  function displayAudioAnalysis(segments, duration) {
-    // Display detailed audio analysis results
-    console.log('Audio segments:', segments);
-    console.log('Total duration:', duration);
+
+  async function translateAudioFile(){
+    if(!audioTranscript){ showToast('Transcribe the audio first','warning'); return; }
+    const from=$id('audioFromLang').value||'auto', to=$id('audioToLang').value||'hi';
+    $id('transcriptionResults').innerHTML='<div class="msg info"><span class="spinner"></span>Translating…</div>';
+    try{
+      const out=await translateTextForAudio(audioTranscript,from,to);
+      window.translatedAudioTranscript=out;
+      $id('transcriptionResults').innerHTML=`<div class="msg success" style="margin-bottom:8px;">🌐 Translated (${from} → ${to})</div><div style="font-size:12px;color:#555;margin-bottom:8px;">Original:</div><pre style="font-size:12px;color:#a8a49c;white-space:pre-wrap;">${audioTranscript}</pre><div style="font-size:12px;color:#555;margin:8px 0;">Translated:</div><div style="font-size:13px;">${out}</div>`;
+    }catch(e){ $id('transcriptionResults').innerHTML=`<div class="msg error">❌ ${e.message}</div>`; }
   }
-  
-  function displayTranscriptionResults(transcript) {
-    const resultsDiv = document.getElementById('transcriptionResults');
-    resultsDiv.innerHTML = `
-      <div class="text-green-400 text-sm mb-2">📝 Transcription Generated</div>
-      <div class="text-white/80 text-sm whitespace-pre-line">${transcript}</div>
-    `;
-  }
-  
-  async function translateAudioFile() {
-    if (!audioTranscript) {
-      alert('Please transcribe the audio file first');
-      return;
-    }
-    
-    const fromLang = document.getElementById('audioFromLang').value || 'auto';
-    const toLang = document.getElementById('audioToLang').value || 'en';
-    
-    try {
-      // Show translation status
-      document.getElementById('transcriptionResults').innerHTML = '<div class="text-yellow-400 text-sm">🔄 Translating audio transcript... Please wait.</div>';
-      
-      // Translate the transcript
-      const translatedText = await translateTextForAudio(audioTranscript, fromLang, toLang);
-      
-      // Display translated results
-      document.getElementById('transcriptionResults').innerHTML = `
-        <div class="text-green-400 text-sm mb-2">🌐 Translation Complete (${fromLang} → ${toLang})</div>
-        <div class="text-white/80 text-sm mb-3">
-          <strong>Original:</strong><br>
-          <div class="text-white/60 text-xs whitespace-pre-line">${audioTranscript}</div>
-        </div>
-        <div class="text-white/80 text-sm">
-          <strong>Translated:</strong><br>
-          <div class="text-white whitespace-pre-line">${translatedText}</div>
-        </div>
-      `;
-      
-      // Store translated transcript for download
-      window.translatedAudioTranscript = translatedText;
-      
-    } catch (err) {
-      console.error('Audio translation failed:', err);
-      document.getElementById('transcriptionResults').innerHTML = '<div class="text-red-400 text-sm">❌ Translation failed: ' + err.message + '</div>';
-    }
-  }
-  
-  async function translateTextForAudio(text, fromLang, toLang) {
-    try {
-      // Use same proxy approach as main translation
-      const proxyUrl = 'https://api.allorigins.win/raw?url=';
-      const targetUrl = encodeURIComponent(
-        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${text}`
-      );
-      const url = proxyUrl + targetUrl;
-      
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      
-      const data = await res.json();
-      return parseGoogleTranslate(data) || text;
-    } catch (err) {
-      console.error('Text translation failed:', err);
-      throw err;
-    }
-  }
-  
-  function downloadAudioTranscript() {
-    if (!audioTranscript) {
-      alert('Please transcribe the audio file first');
-      return;
-    }
-    
-    let content = '';
-    let filename = 'audio_transcript.txt';
-    
-    if (window.translatedAudioTranscript) {
-      // Download both original and translated
-      content = `ORIGINAL TRANSCRIPT:\n${audioTranscript}\n\nTRANSLATED TRANSCRIPT:\n${window.translatedAudioTranscript}`;
-      filename = 'audio_transcript_translated.txt';
-    } else {
-      // Download only original
-      content = audioTranscript;
-    }
-    
-    downloadTxt(filename, content);
-  }
-  
-  // Audio playback control functions
-  function toggleAudioPlayback() {
-    if (!audioElement) return;
-    
-    if (isPlaying) {
-      pauseAudio();
-    } else {
-      playAudio();
-    }
-  }
-  
-  function playAudio() {
-    if (!audioElement) return;
-    
-    audioElement.play();
-    isPlaying = true;
-    document.getElementById('playPauseBtn').innerHTML = '⏸ Pause';
-    document.getElementById('playPauseBtn').classList.add('btn-primary');
-    document.getElementById('playPauseBtn').classList.remove('btn');
-    
-    // Start waveform playback
-    if (wavesurfer) {
-      wavesurfer.play();
-    }
-  }
-  
-  function pauseAudio() {
-    if (!audioElement) return;
-    
-    audioElement.pause();
-    isPlaying = false;
-    document.getElementById('playPauseBtn').innerHTML = '▶ Play';
-    document.getElementById('playPauseBtn').classList.remove('btn-primary');
-    document.getElementById('playPauseBtn').classList.add('btn');
-    
-    // Pause waveform
-    if (wavesurfer) {
-      wavesurfer.pause();
-    }
-  }
-  
-  function stopAudioPlayback() {
-    if (!audioElement) return;
-    
-    audioElement.pause();
-    audioElement.currentTime = 0;
-    isPlaying = false;
-    document.getElementById('playPauseBtn').innerHTML = '▶ Play';
-    document.getElementById('playPauseBtn').classList.remove('btn-primary');
-    document.getElementById('playPauseBtn').classList.add('btn');
-    
-    // Stop waveform
-    if (wavesurfer) {
-      wavesurfer.stop();
-    }
-  }
-  
-  function restartAudioPlayback() {
-    if (!audioElement) return;
-    
-    audioElement.currentTime = 0;
-    if (isPlaying) {
-      audioElement.play();
-      if (wavesurfer) wavesurfer.play();
-    }
-  }
-  
-  // Alternative transcription method using Web Speech API (if available)
-  async function transcribeAudioWithSpeechAPI() {
-    if (!audioFile) {
-      alert('Please upload an audio file first');
-      return;
-    }
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('Speech Recognition not supported in this browser. Using audio analysis instead.');
-      return transcribeAudio();
-    }
-    
-    try {
-      // Show processing status
-      document.getElementById('audioAnalysis').innerHTML = '<div class="text-yellow-400 text-sm">🔄 Using Speech Recognition API... Please wait.</div>';
-      
-      // Use existing audio element if available
-      if (!audioElement) {
-        const url = URL.createObjectURL(audioFile);
-        audioElement = new Audio(url);
+
+  async function transcribeAudioWithSpeechAPI(){
+    if(!audioFile){ showToast('Upload an audio file first','warning'); return; }
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ showToast('Speech API not supported, using audio analysis','warning'); return transcribeAudio(); }
+    $id('audioAnalysis').innerHTML='<div class="msg info"><span class="spinner"></span>Listening via Speech API…</div>';
+    if(!audioElement){ const u=URL.createObjectURL(audioFile); audioElement=new Audio(u); }
+    const rec=new SR();
+    rec.continuous=true; rec.interimResults=true;
+    rec.lang=langToLocale($id('audioFromLang').value||'en');
+    let fin='';
+    rec.onresult=(e)=>{
+      let interim='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const t=e.results[i][0].transcript;
+        if(e.results[i].isFinal) fin+=t+' '; else interim+=t;
       }
-      
-      // Start speech recognition
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = langToLocale(document.getElementById('audioFromLang').value || 'en');
-      
-      let finalTranscript = '';
-      let interimTranscript = '';
-      
-      recognition.onresult = (event) => {
-        interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-        
-        // Show interim results
-        document.getElementById('liveTranscript').innerHTML = `
-          <div class="text-white/60 text-sm">Interim: ${interimTranscript}</div>
-          <div class="text-white text-sm">Final: ${finalTranscript}</div>
-        `;
-      };
-      
-      recognition.onend = () => {
-        if (finalTranscript.trim()) {
-          audioTranscript = finalTranscript.trim();
-          displayTranscriptionResults(audioTranscript);
-          document.getElementById('audioAnalysis').innerHTML = `
-            <div class="text-green-400 text-sm mb-2">✅ Speech Recognition Complete!</div>
-            <div class="text-white/80 text-sm">
-              Duration: ${audioElement.duration ? audioElement.duration.toFixed(2) + 's' : 'Unknown'}<br>
-              Words detected: ${finalTranscript.split(' ').length}<br>
-              <button class="btn text-xs mt-2" onclick="translateAudioFile()">Translate Now</button>
-            </div>
-          `;
-        } else {
-          document.getElementById('audioAnalysis').innerHTML = '<div class="text-red-400 text-sm">❌ No speech detected. Try audio analysis instead.</div>';
-        }
-      };
-      
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        document.getElementById('audioAnalysis').innerHTML = '<div class="text-red-400 text-sm">❌ Speech recognition failed: ' + event.error + '</div>';
-      };
-      
-      // Start recognition and play audio
-      recognition.start();
-      playAudio();
-      
-      // Stop recognition after audio ends
-      audioElement.onended = () => {
-        recognition.stop();
-        pauseAudio();
-      };
-      
-    } catch (err) {
-      console.error('Speech recognition setup failed:', err);
-      document.getElementById('audioAnalysis').innerHTML = '<div class="text-red-400 text-sm">❌ Speech recognition setup failed: ' + err.message + '</div>';
-    }
+      $id('liveTranscript').innerHTML=`<div class="text-dim">Interim: ${interim}</div><div>Final: ${fin}</div>`;
+    };
+    rec.onend=()=>{
+      if(fin.trim()){
+        audioTranscript=fin.trim(); displayTranscriptionResults(audioTranscript);
+        $id('audioAnalysis').innerHTML=`<div class="msg success">✅ Done! Words: ${fin.split(' ').length}</div>`;
+      }else{ $id('audioAnalysis').innerHTML='<div class="msg warning">No speech detected. Try audio analysis.</div>'; }
+    };
+    rec.onerror=(ev)=>{ $id('audioAnalysis').innerHTML=`<div class="msg error">❌ ${ev.error}</div>`; };
+    rec.start(); playAudio();
+    audioElement.onended=()=>{ rec.stop(); pauseAudio(); };
   }
 
-  // --- Video ---
-  let subtitleSegments = [];
-  
-  function handleVideoUpload(e){ 
-    const f = e.target.files[0]; 
-    if(!f) return; 
-    
-    try {
-      const url = URL.createObjectURL(f); 
-      const v = document.getElementById('previewVideo'); 
-      v.src = url; 
-      v.load();
-      
-      // Clear previous subtitles
-      subtitleSegments = [];
-      renderSubtitleEditor();
-      
-      // Show success message
-      const subtitleEditor = document.getElementById('subtitleEditor');
-      subtitleEditor.innerHTML = '<div class="text-green-400 text-sm">Video loaded successfully! Use "Transcribe" to start capturing audio.</div>';
-    } catch (err) {
-      console.error('Video upload failed:', err);
-      alert('Video upload failed: ' + err.message);
-    }
+  function downloadAudioTranscript(){
+    if(!audioTranscript){ showToast('Transcribe first','warning'); return; }
+    const content=window.translatedAudioTranscript
+      ?`ORIGINAL:\n${audioTranscript}\n\nTRANSLATED:\n${window.translatedAudioTranscript}`
+      :audioTranscript;
+    downloadTxt(window.translatedAudioTranscript?'audio_transcript_translated.txt':'audio_transcript.txt',content);
   }
 
-  let videoRec = null;
+  function toggleAudioPlayback(){ isPlaying?pauseAudio():playAudio(); }
+  function playAudio(){
+    if(!audioElement) return;
+    audioElement.play().catch(e=>showToast('Playback error: '+e.message,'error'));
+    isPlaying=true; $id('playPauseBtn').textContent='⏸ Pause';
+    if(wavesurfer) try{ wavesurfer.play(); }catch(e){}
+  }
+  function pauseAudio(){
+    if(!audioElement) return;
+    audioElement.pause(); isPlaying=false; $id('playPauseBtn').textContent='▶ Play';
+    if(wavesurfer) try{ wavesurfer.pause(); }catch(e){}
+  }
+  function stopAudioPlayback(){
+    if(!audioElement) return;
+    audioElement.pause(); audioElement.currentTime=0; isPlaying=false;
+    $id('playPauseBtn').textContent='▶ Play';
+    if(wavesurfer) try{ wavesurfer.stop(); }catch(e){}
+  }
+  function restartAudioPlayback(){
+    if(!audioElement) return;
+    audioElement.currentTime=0;
+    if(isPlaying){ audioElement.play(); if(wavesurfer) try{ wavesurfer.play(); }catch(e){} }
+  }
+
+  // ─── VIDEO ───
+  let subtitleSegments=[];
+
+  function handleVideoUpload(e){
+    const f=e.target.files[0]; if(!f) return;
+    try{
+      const url=URL.createObjectURL(f);
+      const v=$id('previewVideo'); v.src=url; v.load();
+      subtitleSegments=[]; renderSubtitleEditor();
+      $id('subtitleEditor').innerHTML='<div class="msg success">Video loaded! Use Transcribe to capture audio.</div>';
+    }catch(err){ showToast('Video upload failed: '+err.message,'error'); }
+  }
+
+  function loadVideoFromLink(){
+    const link=$id('videoLink').value.trim();
+    if(!link){ showToast('Enter a video link','warning'); return; }
+    $id('subtitleEditor').innerHTML='<div class="msg warning">⚠️ YouTube/Vimeo links need server-side extraction. Please upload a video file directly.</div>';
+    $id('videoLink').value='';
+  }
+
+  let videoRec=null;
   function startVideoTranscription(){
-    const v = document.getElementById('previewVideo'); 
-    if(!v.src){ 
-      alert('Load a video file or paste a link first'); 
-      return; 
-    }
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SpeechRecognition) return alert('SpeechRecognition not supported in this browser');
-    
-    // Clear previous subtitles
-    subtitleSegments = [];
-    
-    const rec = new SpeechRecognition(); 
-    rec.continuous = true; 
-    rec.interimResults = false; 
-    rec.lang = langToLocale(document.getElementById('fromLang').value || 'en');
-    
-    let seq = 0;
-    rec.onresult = (e)=>{
+    const v=$id('previewVideo');
+    if(!v.src){ showToast('Load a video file first','warning'); return; }
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ showToast('SpeechRecognition not supported in this browser','error'); return; }
+    subtitleSegments=[];
+    const rec=new SR();
+    rec.continuous=true; rec.interimResults=false;
+    rec.lang=langToLocale($id('fromLang').value||'en');
+    let seq=0;
+    rec.onresult=(e)=>{
       for(let i=0;i<e.results.length;i++){
-        const r = e.results[i]; 
+        const r=e.results[i];
         if(r.isFinal){
-          const text = r[0].transcript.trim(); 
-          const seg = {
-            id: ++seq, 
-            startMS: Date.now(), 
-            endMS: Date.now()+2000, 
-            text
-          }; 
-          subtitleSegments.push(seg);
+          subtitleSegments.push({id:++seq,startMS:Date.now(),endMS:Date.now()+2000,text:r[0].transcript.trim()});
           renderSubtitleEditor();
         }
       }
     };
-    
-    rec.onerror = (ev)=> {
-      console.error('video rec error',ev);
-      alert('Speech recognition error: ' + ev.error);
-    };
-    
-    rec.onend = () => {
-      console.log('Video transcription ended');
-      videoRec = null;
-    };
-    
-    rec.start(); 
-    videoRec = rec; 
-    
-    // Update UI to show transcription is active
-    const subtitleEditor = document.getElementById('subtitleEditor');
-    subtitleEditor.innerHTML = '<div class="text-yellow-400 text-sm">🎙️ Transcription active - play video loudly near microphone. Click "Stop" when done.</div>';
-    
-    alert('Recognition started — now play the video loudly so your microphone can capture it. Results are approximate.');
+    rec.onerror=(ev)=>showToast('Speech error: '+ev.error,'error');
+    rec.onend=()=>{ videoRec=null; };
+    rec.start(); videoRec=rec;
+    $id('subtitleEditor').innerHTML='<div class="msg info">🎙️ Transcription active — play video near microphone.</div>';
   }
-  
-  function stopVideoTranscription() {
-    if (videoRec) {
-      videoRec.stop();
-      videoRec = null;
-      const subtitleEditor = document.getElementById('subtitleEditor');
-      if (subtitleSegments.length > 0) {
-        subtitleEditor.innerHTML = '<div class="text-green-400 text-sm">Transcription stopped. You can now edit subtitles and download them.</div>';
-      } else {
-        subtitleEditor.innerHTML = '<div class="text-yellow-400 text-sm">No audio captured. Try playing the video louder or check microphone permissions.</div>';
-      }
+
+  function stopVideoTranscription(){
+    if(videoRec){ videoRec.stop(); videoRec=null;
+      $id('subtitleEditor').innerHTML=subtitleSegments.length
+        ?'<div class="msg success">Stopped. Edit subtitles and download below.</div>'
+        :'<div class="msg warning">No audio captured. Play louder or check mic permissions.</div>';
     }
   }
 
   function extractOCR(){
-    const v = document.getElementById('previewVideo');
-    if(!v || !v.src) return alert('Load video first');
-    
-    try {
-      const canvas = document.createElement('canvas'); 
-      canvas.width = v.videoWidth || 640; 
-      canvas.height = v.videoHeight || 480;
-      const ctx = canvas.getContext('2d'); 
-      ctx.drawImage(v, 0, 0, canvas.width, canvas.height); 
-      
-      // Show canvas for user to see what's being processed
-      canvas.style.maxWidth = '100%';
-      canvas.style.border = '2px solid #8b5cf6';
-      canvas.style.borderRadius = '0.5rem';
-      canvas.style.margin = '1rem 0';
-      
-      // Remove any existing canvas
-      const existingCanvas = document.querySelector('#ocrCanvas');
-      if (existingCanvas) existingCanvas.remove();
-      
-      canvas.id = 'ocrCanvas';
-      document.getElementById('subtitleEditor').appendChild(canvas);
-      
-      // Process OCR
-      Tesseract.recognize(canvas, 'eng').then(({data})=>{
-        const ocrText = data.text.trim();
-        if (ocrText) {
-          // Add OCR text to subtitle segments
-          const seg = {
-            id: subtitleSegments.length + 1,
-            startMS: Date.now(),
-            endMS: Date.now() + 3000,
-            text: ocrText
-          };
-          subtitleSegments.push(seg);
+    const v=$id('previewVideo');
+    if(!v||!v.src){ showToast('Load video first','warning'); return; }
+    try{
+      const canvas=document.createElement('canvas');
+      canvas.width=v.videoWidth||640; canvas.height=v.videoHeight||480;
+      canvas.getContext('2d').drawImage(v,0,0,canvas.width,canvas.height);
+      Tesseract.recognize(canvas,'eng').then(({data})=>{
+        const txt=data.text.trim();
+        if(txt){
+          subtitleSegments.push({id:subtitleSegments.length+1,startMS:Date.now(),endMS:Date.now()+3000,text:txt});
           renderSubtitleEditor();
-          alert('OCR completed! Text added to subtitles: ' + ocrText.slice(0, 100));
-        } else {
-          alert('No text detected in the frame');
-        }
-      }).catch(e=> {
-        console.error('OCR failed:', e);
-        alert('OCR failed: ' + e.message);
-      });
-    } catch (err) {
-      console.error('OCR setup failed:', err);
-      alert('OCR setup failed: ' + err.message);
-    }
+          showToast('OCR done: '+txt.slice(0,60),'success');
+        }else{ showToast('No text detected in frame','warning'); }
+      }).catch(e=>showToast('OCR failed: '+e.message,'error'));
+    }catch(err){ showToast('OCR setup failed: '+err.message,'error'); }
   }
 
   function renderSubtitleEditor(){
-    const el = document.getElementById('subtitleEditor');
-    if(!subtitleSegments.length){ el.innerText = 'No subtitles yet.'; return; }
-    el.innerHTML = '';
+    const el=$id('subtitleEditor');
+    if(!subtitleSegments.length){ el.innerText='No subtitles yet.'; return; }
+    el.innerHTML='';
     subtitleSegments.forEach((s,i)=>{
-      const div = document.createElement('div'); div.className='subtitle-segment';
-      div.innerHTML = `<div class='text-xs text-white/60'>Segment ${i+1} — approx ${new Date(s.startMS).toLocaleTimeString()}</div><div contenteditable='true' class='mt-1 text-white'>${s.text}</div>`;
+      const div=document.createElement('div'); div.className='subtitle-segment';
+      div.innerHTML=`<div style="font-size:11px;color:#555;font-family:var(--font-cond);letter-spacing:0.1em;">SEGMENT ${i+1} — ${new Date(s.startMS).toLocaleTimeString()}</div><div contenteditable="true" style="margin-top:6px;">${s.text}</div>`;
       el.appendChild(div);
     });
   }
 
-  async function downloadSRT(){
-    if(!subtitleSegments.length) return alert('No subtitles to download');
-    
-    const targetLang = document.getElementById('subtitleLang').value || 'en';
-    let srtContent = '';
-    
-    if (targetLang === 'en') {
-      // Use original text
-      srtContent = subtitleSegments.map((s,i)=>`${i+1}
-${toSrtTime(s.startMS)} --> ${toSrtTime(s.startMS + 3000)}
-${s.text}`).join('\n\n');
-    } else {
-      // Translate subtitles to target language
-      srtContent = await generateTranslatedSubtitles(targetLang, 'srt');
+  function toSrtTime(ms){
+    const d=new Date(ms);
+    return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}:${String(d.getUTCSeconds()).padStart(2,'0')},${String(d.getUTCMilliseconds()).padStart(3,'0')}`;
+  }
+
+  async function translateSubtitleText(text,to){
+    try{
+      const url='https://api.allorigins.win/raw?url='+encodeURIComponent(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${to}&dt=t&q=${encodeURIComponent(text)}`);
+      const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
+      return parseGoogleTranslate(await res.json())||text;
+    }catch(e){ return text; }
+  }
+
+  async function generateTranslatedSubtitles(to,fmt){
+    if(fmt==='srt'){
+      let s='';
+      for(let i=0;i<subtitleSegments.length;i++){
+        const seg=subtitleSegments[i];
+        const txt=to==='en'?seg.text:await translateSubtitleText(seg.text,to);
+        s+=`${i+1}\n${toSrtTime(seg.startMS)} --> ${toSrtTime(seg.startMS+3000)}\n${txt}\n\n`;
+      }
+      return s;
+    }else{
+      let s='WEBVTT\n\n';
+      for(const seg of subtitleSegments){
+        const txt=to==='en'?seg.text:await translateSubtitleText(seg.text,to);
+        s+=`${toSrtTime(seg.startMS)} --> ${toSrtTime(seg.startMS+3000)}\n${txt}\n\n`;
+      }
+      return s;
     }
-    
-    downloadTxt('subtitles.srt', srtContent);
+  }
+
+  async function downloadSRT(){
+    if(!subtitleSegments.length){ showToast('No subtitles to download','warning'); return; }
+    const to=$id('subtitleLang').value||'en';
+    const content=await generateTranslatedSubtitles(to,'srt');
+    downloadTxt('subtitles.srt',content);
   }
 
   async function downloadVTT(){
-    if(!subtitleSegments.length) return alert('No subtitles to download');
-    
-    const targetLang = document.getElementById('subtitleLang').value || 'en';
-    let vttContent = '';
-    
-    if (targetLang === 'en') {
-      // Use original text
-      vttContent = 'WEBVTT\n\n' + subtitleSegments.map(s=> `${toSrtTime(s.startMS)} --> ${toSrtTime(s.startMS + 3000)}\n${s.text}`).join('\n\n');
-    } else {
-      // Translate subtitles to target language
-      vttContent = await generateTranslatedSubtitles(targetLang, 'vtt');
-    }
-    
-    downloadTxt('subtitles.vtt', vttContent);
+    if(!subtitleSegments.length){ showToast('No subtitles to download','warning'); return; }
+    const to=$id('subtitleLang').value||'en';
+    const content=await generateTranslatedSubtitles(to,'vtt');
+    downloadTxt('subtitles.vtt',content);
   }
-  
-  async function generateTranslatedSubtitles(targetLang, format) {
-    try {
-      let translatedContent = '';
-      
-      if (format === 'srt') {
-        for (let i = 0; i < subtitleSegments.length; i++) {
-          const s = subtitleSegments[i];
-          const translatedText = await translateSubtitleText(s.text, targetLang);
-          
-          translatedContent += `${i+1}
-${toSrtTime(s.startMS)} --> ${toSrtTime(s.startMS + 3000)}
-${translatedText}\n\n`;
-        }
-      } else if (format === 'vtt') {
-        translatedContent = 'WEBVTT\n\n';
-        for (let s of subtitleSegments) {
-          const translatedText = await translateSubtitleText(s.text, targetLang);
-          translatedContent += `${toSrtTime(s.startMS)} --> ${toSrtTime(s.startMS + 3000)}\n${translatedText}\n\n`;
-        }
-      }
-      
-      return translatedContent;
-    } catch (err) {
-      console.error('Subtitle translation failed:', err);
-      alert('Subtitle translation failed: ' + err.message);
-      return '';
-    }
+
+  // ─── TOAST / NOTIFICATION ───
+  function showToast(msg,type='info'){
+    // Remove existing toast
+    const existing=document.querySelector('.toast'); if(existing) existing.remove();
+    const t=document.createElement('div');
+    t.className='msg '+type+' toast';
+    t.style.cssText='position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:9999;min-width:240px;max-width:calc(100vw - 32px);text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.6);font-family:var(--font-cond);font-size:13px;letter-spacing:0.1em;';
+    t.textContent=msg;
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity 0.4s'; setTimeout(()=>t.remove(),400); },3000);
   }
-  
-  async function translateSubtitleText(text, targetLang) {
-    try {
-      // Use same proxy approach as main translation
-      const proxyUrl = 'https://api.allorigins.win/raw?url=';
-      const targetUrl = encodeURIComponent(
-        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${text}`
-      );
-      const url = proxyUrl + targetUrl;
-      
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      
-      const data = await res.json();
-      return parseGoogleTranslate(data) || text;
-    } catch (err) {
-      console.error('Text translation failed:', err);
-      return text; // Return original text if translation fails
+
+  // ─── COMPAT CHECK ───
+  function checkBrowserCompatibility(){
+    const issues=[];
+    if(!window.SpeechRecognition&&!window.webkitSpeechRecognition) issues.push('Voice features limited (use Chrome/Edge)');
+    if(!window.FileReader) issues.push('File upload limited');
+    if(!window.AudioContext&&!window.webkitAudioContext) issues.push('Audio processing limited');
+    if(issues.length){
+      const w=$id('compatWarning');
+      w.innerHTML=`<div style="padding:10px 16px;"><div class="msg warning">${issues.join(' · ')}</div></div>`;
+      w.style.display='block';
     }
   }
 
-  function toSrtTime(ms){
-    const d = new Date(ms);
-    const h = String(d.getUTCHours()).padStart(2,'0');
-    const m = String(d.getUTCMinutes()).padStart(2,'0');
-    const s = String(d.getUTCSeconds()).padStart(2,'0');
-    const msPart = String(ms%1000).padStart(3,'0');
-    return `${h}:${m}:${s},${msPart}`;
-  }
+  // ─── INIT ───
+  document.addEventListener('DOMContentLoaded',()=>{
+    $id('y').textContent=new Date().getFullYear();
+    checkBrowserCompatibility();
+    // Set PDF.js worker
+    if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.worker.min.js';
+  });
+
+  // ─── EXPOSE ALL TO WINDOW (for inline onclick) ───
+  window.translateText=translateText; window.grammarFix=grammarFix; window.rewriteStyle=rewriteStyle;
+  window.startListening=startListening; window.stopListening=stopListening;
+  window.startTranslateLive=startTranslateLive; window.stopTranslateLive=stopTranslateLive;
+  window.speakText=speakText; window.clearInput=clearInput; window.copyOut=copyOut;
+  window.downloadTxt=downloadTxt; window.setTone=setTone;
+  window.handleDocUpload=handleDocUpload; window.translateDocument=translateDocument;
+  window.downloadTranslatedPDF=downloadTranslatedPDF;
+  window.handleAudioUpload=handleAudioUpload; window.transcribeAudio=transcribeAudio;
+  window.transcribeAudioWithSpeechAPI=transcribeAudioWithSpeechAPI;
+  window.translateAudioFile=translateAudioFile; window.downloadAudioTranscript=downloadAudioTranscript;
+  window.toggleAudioPlayback=toggleAudioPlayback; window.stopAudioPlayback=stopAudioPlayback;
+  window.restartAudioPlayback=restartAudioPlayback;
+  window.handleVideoUpload=handleVideoUpload; window.loadVideoFromLink=loadVideoFromLink;
+  window.startVideoTranscription=startVideoTranscription; window.stopVideoTranscription=stopVideoTranscription;
+  window.extractOCR=extractOCR; window.renderSubtitleEditor=renderSubtitleEditor;
+  window.downloadSRT=downloadSRT; window.downloadVTT=downloadVTT; window.toSrtTime=toSrtTime;
 </script>
 </body>
 </html>
