@@ -10,14 +10,14 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- External libs -->
+  <!-- External libraries -->
   <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- WaveSurfer v6 (v7 has incompatible API changes) -->
+  <!-- WaveSurfer v6 (v7 has breaking API changes) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.6.4/wavesurfer.min.js"></script>
 
   <style>
@@ -313,6 +313,19 @@
       border-color: var(--warn);
       background: rgba(212,160,23,0.08);
     }
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 11px;
+      min-height: 28px;
+    }
+    .btn-danger {
+      color: #e87070;
+      border-color: rgba(192,57,43,0.4);
+    }
+    .btn-danger:hover {
+      background: rgba(192,57,43,0.2);
+      color: #ff9999;
+    }
 
     /* ─── GRID ─── */
     .grid2 {
@@ -410,11 +423,32 @@
       border: 1px solid rgba(200,185,138,0.2);
       border-radius: 2px;
       padding: 10px 12px;
-      margin: 6px 0;
+      margin: 8px 0;
     }
-    .subtitle-segment [contenteditable="true"] { outline: none; }
+    .subtitle-segment [contenteditable="true"] {
+      outline: none;
+      padding: 4px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid transparent;
+      border-radius: 2px;
+    }
     .subtitle-segment [contenteditable="true"]:focus {
-      border-bottom: 1px solid var(--accent);
+      border-color: var(--accent);
+      background: rgba(0,0,0,0.5);
+    }
+    .segment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--dim);
+      font-family: var(--font-cond);
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .segment-actions {
+      display: flex;
+      gap: 6px;
     }
 
     /* ─── DOC PREVIEW ─── */
@@ -433,7 +467,7 @@
       border-radius: 2px;
       padding: 12px;
       min-height: 140px;
-      max-height: 300px;
+      max-height: 320px;
       overflow-y: auto;
       font-size: 13px;
       color: var(--silver);
@@ -506,17 +540,17 @@
     /* ─── PROGRESS BAR ─── */
     .progress-bar-wrap {
       width: 100%;
-      height: 2px;
+      height: 3px;
       background: var(--border);
-      border-radius: 1px;
+      border-radius: 2px;
       margin-top: 8px;
       overflow: hidden;
     }
     .progress-bar {
       height: 100%;
       background: var(--accent);
-      border-radius: 1px;
-      transition: width 0.4s ease;
+      border-radius: 2px;
+      transition: width 0.3s ease;
       width: 0%;
     }
 
@@ -541,20 +575,20 @@
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="topbar-logo">BHASHA<span>·</span>AI</div>
-    <div class="topbar-badge">8 Languages · Free Forever</div>
+    <div class="topbar-badge">8 Languages · Production Grade</div>
   </header>
 
   <!-- HERO -->
   <div class="hero">
     <div class="hero-headline">Advanced<br>Translation</div>
-    <div class="hero-sub">Real-time AI · Privacy First · No API Keys</div>
+    <div class="hero-sub">Enterprise Multimodal Processing · Privacy First · Pure Precision</div>
     <div class="pills">
-      <span class="pill gold">No API Keys</span>
-      <span class="pill">100% Free</span>
-      <span class="pill">Privacy First</span>
-      <span class="pill">PDF Generation</span>
-      <span class="pill">OCR</span>
-      <span class="pill">Audio Analysis</span>
+      <span class="pill gold">Production Ready</span>
+      <span class="pill">Structured Docs</span>
+      <span class="pill">Speech &amp; Audio</span>
+      <span class="pill">Video OCR</span>
+      <span class="pill">Paginated PDF</span>
+      <span class="pill">Multi-Language</span>
     </div>
   </div>
 
@@ -582,7 +616,7 @@
         <div class="grid2">
           <!-- LEFT -->
           <div>
-            <label class="lbl">Source Language</label>
+            <label class="lbl" for="fromLang">Source Language</label>
             <select id="fromLang">
               <option value="auto">Auto Detect</option>
               <option value="en">English</option>
@@ -595,37 +629,39 @@
               <option value="kn">Kannada</option>
             </select>
 
-            <label class="lbl">Domain / Context</label>
+            <label class="lbl" for="domain">Domain / Context</label>
             <select id="domain">
-              <option>General</option>
-              <option>Legal</option>
-              <option>Medical</option>
-              <option>Education</option>
-              <option>eCommerce</option>
-              <option>Technical</option>
-              <option>Creative</option>
+              <option value="General">General</option>
+              <option value="Legal">Legal</option>
+              <option value="Medical">Medical</option>
+              <option value="Education">Education</option>
+              <option value="eCommerce">eCommerce</option>
+              <option value="Technical">Technical</option>
+              <option value="Creative">Creative</option>
             </select>
 
-            <label class="lbl">Input Text</label>
+            <label class="lbl" for="inputText">Input Text</label>
             <textarea id="inputText" placeholder="Type or paste text here…"></textarea>
 
             <div class="btn-row">
-              <button class="btn-primary" onclick="translateText()">Translate</button>
+              <button id="textTranslateBtn" class="btn-primary" onclick="translateText()">Translate</button>
               <button class="btn" onclick="grammarFix()">Grammar Fix</button>
               <button class="btn" onclick="rewriteStyle('formal')">Formal</button>
               <button class="btn" onclick="rewriteStyle('informal')">Informal</button>
+              <button id="textCancelBtn" class="btn" style="display:none;" onclick="cancelTextTranslation()">Cancel</button>
             </div>
 
             <div class="btn-row mt-8">
               <button class="btn" id="micBtn" onclick="startListening()">🎙 Mic</button>
               <button class="btn" onclick="stopListening()">⏹ Stop</button>
               <button class="btn" onclick="clearInput()">Clear</button>
+              <button id="textRetryBtn" class="btn btn-danger" style="display:none;" onclick="retryTextTranslation()">Retry Translation</button>
             </div>
           </div>
 
           <!-- RIGHT -->
           <div>
-            <label class="lbl">Target Language</label>
+            <label class="lbl" for="toLang">Target Language</label>
             <select id="toLang">
               <option value="hi">Hindi</option>
               <option value="mr">Marathi</option>
@@ -644,7 +680,7 @@
               <button class="tone-btn" onclick="setTone('informal',this)">Informal</button>
             </div>
 
-            <label class="lbl">Output</label>
+            <label class="lbl" for="outputText">Output</label>
             <textarea id="outputText" readonly placeholder="Translation appears here…"></textarea>
 
             <div class="btn-row">
@@ -654,7 +690,7 @@
             </div>
           </div>
         </div>
-        <div class="text-dim mt-12">✦ Context-aware AI translation · Grammar correction · Style adaptation</div>
+        <div class="text-dim mt-12">✦ Context-aware AI translation · Intelligent paragraph chunking · Style adaptation</div>
       </div>
     </div>
   </div>
@@ -664,51 +700,61 @@
     <div class="content">
       <div class="section-label">Voice &amp; Audio Translation</div>
 
+      <!-- LIVE SPEECH RECOGNITION -->
       <div class="card">
-        <div class="card-title">Live Speech</div>
-
-        <label class="lbl">Speech Language</label>
-        <select id="liveSpeechLang">
-          <option value="auto">Auto Detect</option>
-          <option value="en">English</option>
-          <option value="hi">Hindi</option>
-          <option value="mr">Marathi</option>
-          <option value="gu">Gujarati</option>
-          <option value="ta">Tamil</option>
-          <option value="bn">Bengali</option>
-          <option value="te">Telugu</option>
-          <option value="kn">Kannada</option>
-        </select>
-
-        <label class="lbl">Translate To</label>
-        <select id="liveToLang">
-          <option value="hi">Hindi</option>
-          <option value="en">English</option>
-          <option value="mr">Marathi</option>
-          <option value="gu">Gujarati</option>
-          <option value="ta">Tamil</option>
-          <option value="bn">Bengali</option>
-          <option value="te">Telugu</option>
-          <option value="kn">Kannada</option>
-        </select>
-
-        <div id="liveTranscript" class="output-box mt-12" style="min-height:70px;">Transcript will appear here when you use the mic.</div>
-
-        <div class="btn-row">
-          <button class="btn-primary" onclick="startTranslateLive()">Start Live Translate</button>
-          <button class="btn" onclick="stopTranslateLive()">Stop</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Audio File</div>
+        <div class="card-title">Live Speech Recognition</div>
+        <div class="text-dim mb-8">Direct microphone recognition via Web Speech API</div>
 
         <div class="grid2">
           <div>
-            <label class="lbl">Upload Audio (MP3 / WAV)</label>
-            <input type="file" id="audioFile" accept="audio/*" onchange="handleAudioUpload(event)" />
+            <label class="lbl" for="liveSpeechLang">Spoken Language</label>
+            <select id="liveSpeechLang">
+              <option value="auto">Auto Detect</option>
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="mr">Marathi</option>
+              <option value="gu">Gujarati</option>
+              <option value="ta">Tamil</option>
+              <option value="bn">Bengali</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl" for="liveToLang">Translate To</label>
+            <select id="liveToLang">
+              <option value="hi">Hindi</option>
+              <option value="en">English</option>
+              <option value="mr">Marathi</option>
+              <option value="gu">Gujarati</option>
+              <option value="ta">Tamil</option>
+              <option value="bn">Bengali</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+            </select>
+          </div>
+        </div>
 
-            <label class="lbl">Source Language</label>
+        <div id="liveTranscript" class="output-box mt-12" style="min-height:70px;">Transcript and real-time translation will appear here when microphone is active.</div>
+
+        <div class="btn-row">
+          <button id="liveStartBtn" class="btn-primary" onclick="startTranslateLive()">Start Live Speech</button>
+          <button class="btn" onclick="stopTranslateLive()">Stop</button>
+          <button class="btn" onclick="clearLiveTranscript()">Clear</button>
+        </div>
+      </div>
+
+      <!-- AUDIO FILE PROCESSING -->
+      <div class="card">
+        <div class="card-title">Audio File Processing</div>
+
+        <div class="grid2">
+          <div>
+            <label class="lbl" for="audioFile">Upload Audio (MP3 / WAV / M4A / AAC / OGG / WEBM)</label>
+            <input type="file" id="audioFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm" onchange="handleAudioUpload(event)" />
+            <div id="audioFileInfo" class="text-dim mt-8">No audio file loaded.</div>
+
+            <label class="lbl" for="audioFromLang">Source Language</label>
             <select id="audioFromLang">
               <option value="auto">Auto Detect</option>
               <option value="en">English</option>
@@ -721,7 +767,7 @@
               <option value="kn">Kannada</option>
             </select>
 
-            <label class="lbl">Target Language</label>
+            <label class="lbl" for="audioToLang">Target Language</label>
             <select id="audioToLang">
               <option value="hi">Hindi</option>
               <option value="mr">Marathi</option>
@@ -734,19 +780,19 @@
             </select>
 
             <div class="btn-row">
-              <button class="btn-primary" onclick="transcribeAudioWithSpeechAPI()">Transcribe</button>
-              <button class="btn" onclick="transcribeAudioAnalysis()">Analyze</button>
+              <button id="audioTranscribeBtn" class="btn-primary" onclick="transcribeAudioFile()">Transcribe</button>
+              <button class="btn" onclick="transcribeAudioAnalysis()">Analyze Metadata</button>
             </div>
             <div class="btn-row">
-              <button class="btn" onclick="translateAudioFile()">Translate</button>
-              <button class="btn" onclick="downloadAudioTranscript()">Download</button>
+              <button id="audioTranslateBtn" class="btn" onclick="translateAudioTranscript()">Translate Transcript</button>
+              <button class="btn" onclick="downloadAudioTranscript()">Download Transcript</button>
             </div>
-            <div class="text-dim mt-8">💡 "Transcribe" uses Speech API · "Analyze" shows audio stats only</div>
+            <div class="text-dim mt-8">💡 Speech Transcription uses real speech-to-text; Audio Analysis extracts acoustic metrics.</div>
           </div>
 
           <div>
-            <label class="lbl">Waveform</label>
-            <div id="audioVisualizer"><span class="text-dim" style="font-size:13px;">Upload audio to see waveform</span></div>
+            <label class="lbl">Waveform &amp; Playback</label>
+            <div id="audioVisualizer"><span class="text-dim" style="font-size:13px;">Upload audio to display waveform</span></div>
 
             <div class="btn-row mt-12">
               <button id="playPauseBtn" class="btn" onclick="toggleAudioPlayback()" disabled>▶ Play</button>
@@ -754,11 +800,11 @@
               <button id="restartBtn" class="btn" onclick="restartAudioPlayback()" disabled>⏮ Restart</button>
             </div>
 
-            <label class="lbl">Analysis</label>
-            <div id="audioAnalysis" class="output-box">Upload an audio file to see analysis</div>
+            <label class="lbl">Acoustic Analysis</label>
+            <div id="audioAnalysis" class="output-box">Upload an audio file to view acoustic properties</div>
 
-            <label class="lbl">Transcription</label>
-            <div id="transcriptionResults" class="output-box tall">Transcription will appear after processing</div>
+            <label class="lbl">Speech Transcript &amp; Translation</label>
+            <div id="transcriptionResults" class="output-box tall">Transcript will appear here after processing</div>
           </div>
         </div>
       </div>
@@ -773,13 +819,13 @@
       <div class="card">
         <div class="card-title">Document</div>
 
-        <label class="lbl">Upload (PDF / DOCX / PPTX)</label>
+        <label class="lbl" for="docFile">Upload Document (PDF / DOCX / PPTX)</label>
         <input type="file" id="docFile" accept=".pdf,.docx,.pptx" onchange="handleDocUpload(event)" />
-        <div class="text-dim mt-8">✦ Advanced parsing · Format preservation · PDF generation</div>
+        <div id="docFileInfo" class="text-dim mt-8">✦ Structured document model · Multi-page PDF pagination</div>
 
         <div class="grid2" style="margin-top:14px;">
           <div>
-            <label class="lbl">Source Language</label>
+            <label class="lbl" for="docFromLang">Source Language</label>
             <select id="docFromLang">
               <option value="auto">Auto Detect</option>
               <option value="en">English</option>
@@ -793,7 +839,7 @@
             </select>
           </div>
           <div>
-            <label class="lbl">Target Language</label>
+            <label class="lbl" for="docToLang">Target Language</label>
             <select id="docToLang">
               <option value="hi">Hindi</option>
               <option value="mr">Marathi</option>
@@ -808,15 +854,23 @@
         </div>
 
         <div class="btn-row">
-          <button class="btn-primary" onclick="translateDocument()">Translate Document</button>
-          <button class="btn" onclick="downloadTranslatedPDF()">Download PDF</button>
-          <button class="btn" onclick="downloadTxt('document_translation.txt', document.getElementById('docTranslated').innerText)">Download TXT</button>
+          <button id="docTranslateBtn" class="btn-primary" onclick="translateDocument()">Translate Document</button>
+          <button id="docPdfDownloadBtn" class="btn" onclick="downloadTranslatedPDF()">Download PDF</button>
+          <button class="btn" onclick="downloadTranslatedDocTxt()">Download TXT</button>
+          <button id="docCancelBtn" class="btn" style="display:none;" onclick="cancelDocTranslation()">Cancel</button>
         </div>
 
-        <label class="lbl">Side-by-Side Preview</label>
+        <div id="docProgressWrap" style="display:none;" class="mt-12">
+          <div id="docProgressText" class="text-dim">Extracting content…</div>
+          <div class="progress-bar-wrap">
+            <div id="docProgressBar" class="progress-bar"></div>
+          </div>
+        </div>
+
+        <label class="lbl">Side-by-Side Structured Preview</label>
         <div class="doc-preview-wrap">
-          <div id="docOriginal" class="doc-preview">Original preview</div>
-          <div id="docTranslated" class="doc-preview">Translated preview</div>
+          <div id="docOriginal" class="doc-preview">Original document preview appears here after upload.</div>
+          <div id="docTranslated" class="doc-preview">Translated document preview appears here after translation.</div>
         </div>
       </div>
     </div>
@@ -825,23 +879,24 @@
   <!-- ════════════════════════════ VIDEO PANEL ════════════════════════════ -->
   <div id="video-panel" class="panel">
     <div class="content">
-      <div class="section-label">Video Content Translation</div>
+      <div class="section-label">Video Content &amp; Subtitle Translation</div>
 
       <div class="card">
         <div class="card-title">Video</div>
 
         <div class="grid2">
           <div>
-            <label class="lbl">Upload Video</label>
-            <input type="file" id="videoFile" accept="video/*" onchange="handleVideoUpload(event)" />
+            <label class="lbl" for="videoFile">Upload Video File (MP4 / WEBM / MOV / M4V)</label>
+            <input type="file" id="videoFile" accept="video/*,.mp4,.webm,.mov,.m4v" onchange="handleVideoUpload(event)" />
+            <div id="videoFileInfo" class="text-dim mt-8">No video loaded.</div>
 
-            <label class="lbl">Or Paste Link (YouTube / Vimeo)</label>
-            <input type="text" id="videoLink" placeholder="Paste link here…" />
+            <label class="lbl" for="videoLink">Or Video Link (Direct URL)</label>
+            <input type="text" id="videoLink" placeholder="Enter video link…" />
             <div class="btn-row">
               <button class="btn" onclick="loadVideoFromLink()">Load Link</button>
             </div>
 
-            <label class="lbl">Speech Language (in video)</label>
+            <label class="lbl" for="videoFromLang">Speech Language (in video)</label>
             <select id="videoFromLang">
               <option value="en">English</option>
               <option value="hi">Hindi</option>
@@ -853,22 +908,8 @@
               <option value="kn">Kannada</option>
             </select>
 
-            <div class="btn-row mt-12">
-              <button class="btn-primary" onclick="startVideoTranscription()">Transcribe</button>
-              <button class="btn" onclick="stopVideoTranscription()">Stop</button>
-              <button class="btn" onclick="extractOCR()">OCR Frame</button>
-            </div>
-            <div class="text-dim mt-8">🎯 Multi-language subtitle support with OCR integration</div>
-          </div>
-
-          <div>
-            <label class="lbl">Preview</label>
-            <div class="video-wrap">
-              <video id="previewVideo" controls playsinline webkit-playsinline>Your browser does not support HTML5 video.</video>
-            </div>
-
-            <label class="lbl">Subtitle Language</label>
-            <select id="subtitleLang">
+            <label class="lbl" for="ocrLang">OCR Language (for Frame Recognition)</label>
+            <select id="ocrLang">
               <option value="en">English</option>
               <option value="hi">Hindi</option>
               <option value="mr">Marathi</option>
@@ -879,13 +920,41 @@
               <option value="kn">Kannada</option>
             </select>
 
-            <div class="btn-row">
-              <button class="btn" onclick="downloadSRT()">Download SRT</button>
-              <button class="btn" onclick="downloadVTT()">Download VTT</button>
+            <div class="btn-row mt-12">
+              <button id="videoTranscribeBtn" class="btn-primary" onclick="startVideoTranscription()">Transcribe</button>
+              <button id="videoStopTranscribeBtn" class="btn" onclick="stopVideoTranscription()">Stop</button>
+              <button id="ocrFrameBtn" class="btn" onclick="extractOCR()">OCR Frame</button>
+            </div>
+            <div class="text-dim mt-8">🎯 OCR frame analysis with image contrast enhancement &amp; video timeline timestamps</div>
+          </div>
+
+          <div>
+            <label class="lbl">Video Preview</label>
+            <div class="video-wrap">
+              <video id="previewVideo" controls playsinline webkit-playsinline>Your browser does not support HTML5 video.</video>
             </div>
 
-            <label class="lbl">Subtitle Editor</label>
-            <div id="subtitleEditor" class="output-box tall">Subtitle editor will appear after transcription.</div>
+            <label class="lbl" for="subtitleLang">Target Subtitle Language</label>
+            <select id="subtitleLang">
+              <option value="hi">Hindi</option>
+              <option value="en">English</option>
+              <option value="mr">Marathi</option>
+              <option value="gu">Gujarati</option>
+              <option value="ta">Tamil</option>
+              <option value="bn">Bengali</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+            </select>
+
+            <div class="btn-row">
+              <button id="subTranslateBtn" class="btn-primary" onclick="translateSubtitles()">Translate Subtitles</button>
+              <button class="btn" onclick="downloadSRT()">Download SRT</button>
+              <button class="btn" onclick="downloadVTT()">Download VTT</button>
+              <button class="btn" onclick="addNewSubtitleSegment()">+ Add Segment</button>
+            </div>
+
+            <label class="lbl">Interactive Subtitle Editor</label>
+            <div id="subtitleEditor" class="output-box tall">No subtitle segments loaded. Upload a video and use Transcribe or OCR Frame.</div>
           </div>
         </div>
       </div>
@@ -900,704 +969,1769 @@
       <a class="chip" href="tel:+919580159631">✆ +91 95801 59631</a>
       <a class="chip" href="https://www.linkedin.com/in/krishna-patil-33969536b/" target="_blank" rel="noopener">in LinkedIn</a>
     </div>
-    <div class="footer-copy">© <span id="y"></span> BHASHA · Advanced AI Translation System</div>
+    <div class="footer-copy">© <span id="y"></span> BHASHA · Advanced Multimodal Translation System</div>
   </footer>
 
 <script>
-  // ─── NAV SWITCHING ───
+  /* ==========================================================================
+     PHASE 20: CENTRAL LANGUAGE CONFIGURATION
+     ========================================================================== */
+  const LANGUAGES = {
+    en:   { name: "English",     locale: "en-US", ocr: "eng" },
+    hi:   { name: "Hindi",       locale: "hi-IN", ocr: "hin" },
+    mr:   { name: "Marathi",     locale: "mr-IN", ocr: "mar" },
+    gu:   { name: "Gujarati",    locale: "gu-IN", ocr: "guj" },
+    ta:   { name: "Tamil",       locale: "ta-IN", ocr: "tam" },
+    bn:   { name: "Bengali",     locale: "bn-IN", ocr: "ben" },
+    te:   { name: "Telugu",      locale: "te-IN", ocr: "tel" },
+    kn:   { name: "Kannada",     locale: "kn-IN", ocr: "kan" },
+    auto: { name: "Auto Detect", locale: "en-US", ocr: "eng" }
+  };
+
+  function langToLocale(code) {
+    if (!code) return "en-US";
+    if (LANGUAGES[code]) return LANGUAGES[code].locale;
+    if (code.includes("-")) return code;
+    return code + "-IN";
+  }
+
+  function langToOcrCode(code) {
+    return (LANGUAGES[code] && LANGUAGES[code].ocr) || "eng";
+  }
+
+  function $id(id) { return document.getElementById(id); }
+
+  /* ==========================================================================
+     SECURITY & RESOURCE MANAGEMENT UTILITIES
+     ========================================================================== */
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function sanitizeFilename(filename, defaultName = 'bhasha_export') {
+    if (!filename) return defaultName;
+    // Remove directory traversal sequences and invalid filesystem characters
+    const clean = filename
+      .replace(/[\\/:\*\?"<>\|]/g, '_')
+      .replace(/\.\.+/g, '.')
+      .trim();
+    return clean || defaultName;
+  }
+
+  // Object URL tracking to prevent memory leaks
+  const trackedObjectUrls = new Set();
+  function createTrackedUrl(blobOrFile) {
+    const url = URL.createObjectURL(blobOrFile);
+    trackedObjectUrls.add(url);
+    return url;
+  }
+  function revokeTrackedUrl(url) {
+    if (url && trackedObjectUrls.has(url)) {
+      URL.revokeObjectURL(url);
+      trackedObjectUrls.delete(url);
+    }
+  }
+  function revokeAllTrackedUrls() {
+    trackedObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    trackedObjectUrls.clear();
+  }
+
+  /* ==========================================================================
+     PHASE 21: CENTRAL API CLIENT & ROBUST TRANSLATION CORE
+     ========================================================================== */
+  const API = {
+    // Primary endpoint: checks local/hosted /api/translate
+    backendUrl: '/api/translate',
+    isBackendAvailable: null,
+
+    async checkBackend() {
+      if (this.isBackendAvailable !== null) return this.isBackendAvailable;
+      if (window.location.protocol === 'file:') {
+        this.isBackendAvailable = false;
+        return false;
+      }
+      try {
+        const res = await fetch(this.backendUrl, {
+          method: 'OPTIONS',
+          signal: AbortSignal.timeout ? AbortSignal.timeout(1500) : undefined
+        });
+        this.isBackendAvailable = res.ok || res.status === 405 || res.status === 200;
+      } catch (e) {
+        this.isBackendAvailable = false;
+      }
+      return this.isBackendAvailable;
+    },
+
+    /**
+     * Executes single chunk translation via backend or resilient multi-proxy fallback
+     */
+    async translateChunk(text, from, to, domain = 'General', signal = null) {
+      if (!text || !text.trim()) return '';
+
+      const queryText = (domain && domain !== 'General') ? `[Context: ${domain}] ${text}` : text;
+      const normalizedFrom = from === 'auto' ? 'auto' : (LANGUAGES[from] ? from : 'auto');
+      const normalizedTo = LANGUAGES[to] ? to : 'hi';
+
+      // 1. Try serverless backend if available
+      const backendReady = await this.checkBackend();
+      if (backendReady) {
+        try {
+          const res = await fetch(this.backendUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, from: normalizedFrom, to: normalizedTo, domain }),
+            signal
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.translatedText) return data.translatedText;
+          }
+        } catch (err) {
+          if (err.name === 'AbortError') throw err;
+          console.warn('Backend translation failed, attempting resilient client fallback', err);
+        }
+      }
+
+      // 2. Resilient client-side multi-proxy fallback
+      const directUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${normalizedFrom}&tl=${normalizedTo}&dt=t&q=${encodeURIComponent(queryText)}`;
+      
+      const endpoints = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`,
+        `https://corsproxy.io/?url=${encodeURIComponent(directUrl)}`,
+        directUrl // Direct request (works in certain electron / browser setups)
+      ];
+
+      let lastError = null;
+      for (const ep of endpoints) {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          if (signal && signal.aborted) throw new DOMException('Translation cancelled by user', 'AbortError');
+          try {
+            const res = await fetch(ep, { signal });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const parsed = parseGoogleTranslate(data);
+            if (parsed !== null && parsed !== undefined) {
+              return stripDomainContext(parsed, domain);
+            }
+          } catch (err) {
+            if (err.name === 'AbortError') throw err;
+            lastError = err;
+            // Short backoff before retry
+            await new Promise(r => setTimeout(r, 250 * (attempt + 1)));
+          }
+        }
+      }
+
+      throw lastError || new Error('All translation proxies failed to respond');
+    }
+  };
+
+  function parseGoogleTranslate(data) {
+    try {
+      if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+        return data[0].map(s => Array.isArray(s) && s[0] ? s[0] : '').join('');
+      }
+      if (data && data.responseData && data.responseData.translatedText) {
+        return data.responseData.translatedText;
+      }
+      if (data && data.translatedText) {
+        return data.translatedText;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function stripDomainContext(text, domain) {
+    if (!text || !domain || domain === 'General') return text;
+    return text.replace(/^\[Context:\s*[^\]]+\]\s*/i, '').replace(/^\[[^\]]+\]\s*/, '');
+  }
+
+  /* ==========================================================================
+     PHASE 2: INTELLIGENT CHUNKING & TRANSLATION ENGINE
+     ========================================================================== */
+  /**
+   * Intelligently chunks text by paragraphs -> sentences -> words
+   * Preserves newlines and formatting.
+   */
+  function splitIntoIntelligentChunks(text, maxChunkLen = 1400) {
+    if (!text) return [];
+    if (text.length <= maxChunkLen) return [text];
+
+    const paragraphs = text.split(/(\r?\n\r?\n)/);
+    const chunks = [];
+    let currentChunk = '';
+
+    for (let i = 0; i < paragraphs.length; i++) {
+      const part = paragraphs[i];
+      if ((currentChunk.length + part.length) <= maxChunkLen) {
+        currentChunk += part;
+      } else {
+        if (currentChunk.trim()) {
+          chunks.push(currentChunk);
+          currentChunk = '';
+        }
+        if (part.length <= maxChunkLen) {
+          currentChunk = part;
+        } else {
+          // Paragraph itself is larger than maxChunkLen, split by sentences
+          const sentences = part.split(/([.?!।\r\n]+\s+)/);
+          for (let s = 0; s < sentences.length; s++) {
+            const sentence = sentences[s];
+            if ((currentChunk.length + sentence.length) <= maxChunkLen) {
+              currentChunk += sentence;
+            } else {
+              if (currentChunk.trim()) {
+                chunks.push(currentChunk);
+                currentChunk = '';
+              }
+              if (sentence.length <= maxChunkLen) {
+                currentChunk = sentence;
+              } else {
+                // Large sentence without punctuation: split by space/words safely
+                const words = sentence.split(/(\s+)/);
+                for (let w = 0; w < words.length; w++) {
+                  const word = words[w];
+                  if ((currentChunk.length + word.length) <= maxChunkLen) {
+                    currentChunk += word;
+                  } else {
+                    if (currentChunk) chunks.push(currentChunk);
+                    currentChunk = word;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (currentChunk.trim() || currentChunk) {
+      chunks.push(currentChunk);
+    }
+    return chunks;
+  }
+
+  /**
+   * translateTextCore - Robust translation orchestrator with retry and progress
+   */
+  async function translateTextCore(text, from, to, options = {}) {
+    const {
+      domain = 'General',
+      onProgress = null,
+      signal = null,
+      maxConcurrency = 2
+    } = options;
+
+    if (!text || !text.trim()) {
+      const err = new Error('No input text provided.');
+      err.code = 'EMPTY_INPUT';
+      throw err;
+    }
+
+    if (from !== 'auto' && from === to) {
+      const err = new Error('Source and target languages are the same.');
+      err.code = 'SAME_LANGUAGE';
+      throw err;
+    }
+
+    const chunks = splitIntoIntelligentChunks(text, 1400);
+    const results = new Array(chunks.length);
+    let completed = 0;
+
+    // Concurrency pool
+    let currentIndex = 0;
+    async function worker() {
+      while (currentIndex < chunks.length) {
+        if (signal && signal.aborted) throw new DOMException('Translation aborted', 'AbortError');
+        const idx = currentIndex++;
+        const chunk = chunks[idx];
+
+        // Skip translation for pure whitespace chunks while preserving layout
+        if (!chunk.trim()) {
+          results[idx] = chunk;
+        } else {
+          let translated = null;
+          let retries = 0;
+          while (retries < 3) {
+            try {
+              translated = await API.translateChunk(chunk, from, to, domain, signal);
+              break;
+            } catch (err) {
+              if (err.name === 'AbortError') throw err;
+              retries++;
+              if (retries >= 3) {
+                err.code = err.code || 'NETWORK_ERROR';
+                throw err;
+              }
+              await new Promise(r => setTimeout(r, 400 * retries));
+            }
+          }
+          results[idx] = translated;
+        }
+
+        completed++;
+        if (typeof onProgress === 'function') {
+          onProgress(completed, chunks.length);
+        }
+      }
+    }
+
+    const poolSize = Math.min(maxConcurrency, chunks.length);
+    const workers = [];
+    for (let i = 0; i < poolSize; i++) {
+      workers.push(worker());
+    }
+
+    await Promise.all(workers);
+    return results.join('');
+  }
+
+  /* ==========================================================================
+     PHASE 3: TEXT TRANSLATION MODULE
+     ========================================================================== */
+  let textAbortController = null;
+  let lastFailedTextRequest = null;
+
+  async function translateText() {
+    const input = $id('inputText').value;
+    const from = $id('fromLang').value || 'auto';
+    const to = $id('toLang').value || 'hi';
+    const domain = $id('domain') ? $id('domain').value : 'General';
+
+    if (!input || !input.trim()) {
+      showToast('Please enter text to translate.', 'warning');
+      return '';
+    }
+
+    if (from !== 'auto' && from === to) {
+      showToast('Source and Target languages cannot be the same.', 'warning');
+      return '';
+    }
+
+    const btn = $id('textTranslateBtn');
+    const cancelBtn = $id('textCancelBtn');
+    const retryBtn = $id('textRetryBtn');
+    const origHtml = btn.innerHTML;
+
+    btn.innerHTML = '<span class="spinner"></span>Translating…';
+    btn.disabled = true;
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    if (retryBtn) retryBtn.style.display = 'none';
+
+    if (textAbortController) textAbortController.abort();
+    textAbortController = new AbortController();
+
+    try {
+      const translated = await translateTextCore(input, from, to, {
+        domain,
+        signal: textAbortController.signal,
+        onProgress: (done, total) => {
+          btn.innerHTML = `<span class="spinner"></span>Translating ${Math.round((done / total) * 100)}%`;
+        }
+      });
+
+      $id('outputText').value = translated;
+      lastFailedTextRequest = null;
+      showToast('Translation completed successfully', 'success');
+      return translated;
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        showToast('Translation was cancelled.', 'info');
+      } else {
+        console.error('Translation error:', err);
+        lastFailedTextRequest = { input, from, to, domain };
+        const userMsg = err.code === 'NETWORK_ERROR'
+          ? 'Network error. Please check your connection and retry.'
+          : (err.code === 'RATE_LIMIT'
+            ? 'Rate limit reached. Please wait a moment and retry.'
+            : 'Translation failed: ' + (err.message || 'Service unavailable'));
+        showToast(userMsg, 'error');
+        if (retryBtn) retryBtn.style.display = 'inline-block';
+      }
+      return '';
+    } finally {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      textAbortController = null;
+    }
+  }
+
+  function cancelTextTranslation() {
+    if (textAbortController) {
+      textAbortController.abort();
+      textAbortController = null;
+    }
+  }
+
+  function retryTextTranslation() {
+    if (lastFailedTextRequest) {
+      $id('inputText').value = lastFailedTextRequest.input;
+      $id('fromLang').value = lastFailedTextRequest.from;
+      $id('toLang').value = lastFailedTextRequest.to;
+      if ($id('domain')) $id('domain').value = lastFailedTextRequest.domain;
+    }
+    translateText();
+  }
+
+  /* Style Rewriting & Grammar */
+  const RULES = {
+    en: {
+      formal: { "hi": "hello", "hey": "hello", "thanks": "thank you", "gonna": "going to", "wanna": "want to", "ok": "okay", "yeah": "yes", "nope": "no" },
+      informal: { "hello": "hey", "please inform me": "let me know", "please": "pls", "do not": "don't", "cannot": "can't", "thank you": "thanks" }
+    },
+    hi: {
+      formal: { "हाय": "नमस्कार", "हेलो": "नमस्कार", "बताओ": "कृपया बताइए", "करो": "कृपया करें" },
+      informal: { "नमस्कार": "हाय", "कृपया": "प्लीज", "धन्यवाद": "थैंक्स" }
+    },
+    default: { formal: {}, informal: {} }
+  };
+
+  function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function applyReplacements(text, reps) {
+    if (!reps) return text;
+    let out = text;
+    Object.keys(reps).sort((a, b) => b.length - a.length).forEach(k => {
+      if (!k) return;
+      out = out.replace(new RegExp('\\b' + escapeRegex(k) + '\\b', 'gi'), reps[k]);
+    });
+    return out;
+  }
+
+  function grammarFixSimple(text, lang) {
+    if (!text) return text;
+    lang = (lang || 'en').toLowerCase();
+    if (lang === 'en') {
+      let t = text.replace(/\s+/g, ' ').trim();
+      t = t.replace(/\s+([,?.!;:])/g, '$1');
+      t = t.replace(/([.!?])\s*([a-z])/g, (m, p, c) => p + ' ' + c.toUpperCase());
+      t = t.replace(/^([a-z])/, (m, c) => c.toUpperCase());
+      return t;
+    }
+    if (['hi', 'mr', 'gu', 'bn', 'te', 'kn', 'ta'].includes(lang)) {
+      return text.replace(/\s+/g, ' ').trim().replace(/\s+([,।!?])/g, '$1');
+    }
+    return text.replace(/\s+/g, ' ').trim();
+  }
+
+  async function grammarFix() {
+    let t = $id('outputText').value || $id('inputText').value;
+    if (!t) { showToast('Please enter or translate text first', 'warning'); return; }
+    $id('outputText').value = grammarFixSimple(t, $id('toLang').value || 'en');
+    showToast('Grammar rules applied', 'info');
+  }
+
+  async function rewriteStyle(style) {
+    let t = $id('outputText').value;
+    if (!t) t = await translateText();
+    if (!t) return;
+    const lang = $id('toLang').value || 'en';
+    const rules = RULES[lang] || RULES.default;
+    let out = t;
+    if (style === 'formal' && rules.formal) out = applyReplacements(out, rules.formal);
+    else if (style === 'informal' && rules.informal) out = applyReplacements(out, rules.informal);
+    $id('outputText').value = grammarFixSimple(out, lang);
+    showToast(`Style updated: ${style}`, 'info');
+  }
+
+  function setTone(tone, btn) {
+    document.querySelectorAll('.tone-group .tone-btn').forEach(b => b.classList.remove('selected'));
+    if (btn) btn.classList.add('selected');
+  }
+
+  /* Web Speech API Live Mic */
+  let recognition = null;
+  function startListening() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      showToast('Speech Recognition not supported in this browser. Use Chrome or Edge.', 'warning');
+      return;
+    }
+    if (recognition) { recognition.stop(); recognition = null; }
+    try {
+      recognition = new SR();
+      const code = $id('fromLang').value || 'en';
+      recognition.lang = langToLocale(code === 'auto' ? 'en' : code);
+      recognition.interimResults = true;
+      recognition.continuous = true;
+
+      recognition.onresult = (e) => {
+        let t = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          t += e.results[i][0].transcript;
+        }
+        $id('inputText').value = t;
+        $id('micBtn').textContent = '🔴 Listening…';
+        $id('micBtn').classList.add('active-mic');
+      };
+
+      recognition.onerror = (e) => {
+        showToast('Microphone error: ' + e.error, 'error');
+        resetMicBtn();
+      };
+      recognition.onend = () => resetMicBtn();
+      recognition.start();
+    } catch (e) {
+      showToast('Microphone setup failed: ' + e.message, 'error');
+    }
+  }
+
+  function resetMicBtn() {
+    $id('micBtn').textContent = '🎙 Mic';
+    $id('micBtn').classList.remove('active-mic');
+  }
+
+  function stopListening() {
+    if (recognition) { recognition.stop(); recognition = null; }
+    resetMicBtn();
+  }
+
+  function clearInput() {
+    $id('inputText').value = '';
+    $id('outputText').value = '';
+  }
+
+  function copyOut() {
+    const val = $id('outputText').value || '';
+    if (!val) { showToast('Nothing to copy', 'warning'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(val).then(() => showToast('Copied to clipboard!', 'success')).catch(() => showToast('Copy failed', 'error'));
+    } else {
+      $id('outputText').select();
+      document.execCommand('copy');
+      showToast('Copied to clipboard!', 'success');
+    }
+  }
+
+  function speakText() {
+    const text = $id('outputText').value;
+    if (!text) { showToast('No text to speak', 'warning'); return; }
+    if (!('speechSynthesis' in window)) { showToast('Speech synthesis not supported', 'warning'); return; }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = langToLocale($id('toLang').value || 'en');
+    window.speechSynthesis.speak(u);
+  }
+
+  function downloadTxt(filename, text) {
+    if (!text) { showToast('Nothing to download', 'warning'); return; }
+    const safeName = sanitizeFilename(filename, 'translation.txt');
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = createTrackedUrl(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = safeName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => revokeTrackedUrl(url), 1000);
+  }
+
+  /* ==========================================================================
+     PHASE 7: LIVE SPEECH TRANSLATION
+     ========================================================================== */
+  let liveRec = null;
+  function startTranslateLive() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      showToast('Live speech recognition is not supported in this browser. Use Chrome or Edge.', 'warning');
+      return;
+    }
+    if (liveRec) { liveRec.stop(); liveRec = null; }
+    liveRec = new SR();
+    liveRec.continuous = true;
+    liveRec.interimResults = true;
+
+    const speechLang = $id('liveSpeechLang').value || 'en';
+    const toLang = $id('liveToLang').value || 'hi';
+    liveRec.lang = langToLocale(speechLang === 'auto' ? 'en' : speechLang);
+
+    const transcriptEl = $id('liveTranscript');
+    transcriptEl.textContent = 'Listening… Speak into your microphone.';
+
+    liveRec.onresult = async (e) => {
+      let fin = '', interim = '';
+      for (let i = 0; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) fin += r[0].transcript + ' ';
+        else interim += r[0].transcript;
+      }
+
+      transcriptEl.innerHTML = `
+        <div class="text-dim">Interim: ${escapeHtml(interim)}</div>
+        <div style="color:var(--platinum);margin-top:4px;">Final: ${escapeHtml(fin)}</div>
+      `;
+
+      if (fin.trim()) {
+        try {
+          const slang = speechLang === 'auto' ? 'auto' : speechLang;
+          const translated = await API.translateChunk(fin.trim(), slang, toLang);
+          transcriptEl.innerHTML = `
+            <div class="text-dim">Spoken (${speechLang}): ${escapeHtml(fin)}</div>
+            <div style="color:var(--accent);margin-top:8px;font-weight:500;">Translated (${toLang}): ${escapeHtml(translated)}</div>
+          `;
+        } catch (err) {
+          console.error('Live translate error:', err);
+        }
+      }
+    };
+
+    liveRec.onerror = (ev) => {
+      showToast('Live Speech Error: ' + ev.error, 'error');
+      $id('liveStartBtn').textContent = 'Start Live Speech';
+    };
+
+    liveRec.onend = () => {
+      $id('liveStartBtn').textContent = 'Start Live Speech';
+    };
+
+    liveRec.start();
+    $id('liveStartBtn').textContent = '🔴 Listening…';
+    showToast('Live Speech active — speak now', 'success');
+  }
+
+  function stopTranslateLive() {
+    if (liveRec) {
+      liveRec.stop();
+      liveRec = null;
+    }
+    $id('liveStartBtn').textContent = 'Start Live Speech';
+    showToast('Live Speech stopped', 'info');
+  }
+
+  function clearLiveTranscript() {
+    $id('liveTranscript').textContent = 'Transcript will appear here when microphone is active.';
+  }
+
+  /* ==========================================================================
+     PHASE 4 & 5: STRUCTURED DOCUMENT MODULE & PAGINATED PDF EXPORT
+     ========================================================================== */
+  let documentModel = null;
+  let translatedDocumentModel = null;
+  let docAbortController = null;
+
+  async function handleDocUpload(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+
+    // File size check: 50MB max
+    if (f.size > 50 * 1024 * 1024) {
+      showToast('File size exceeds 50MB limit.', 'error');
+      return;
+    }
+
+    const orig = $id('docOriginal');
+    const trans = $id('docTranslated');
+    const info = $id('docFileInfo');
+
+    orig.innerHTML = '<span class="spinner"></span>Reading document structure…';
+    trans.textContent = 'Translated preview will appear after translation.';
+    info.textContent = `${escapeHtml(f.name)} · ${(f.size / 1024).toFixed(1)} KB`;
+
+    const name = f.name.toLowerCase();
+    documentModel = {
+      filename: f.name,
+      type: name.endsWith('.pdf') ? 'pdf' : (name.endsWith('.docx') ? 'docx' : 'pptx'),
+      pages: []
+    };
+    translatedDocumentModel = null;
+
+    try {
+      if (name.endsWith('.pdf')) {
+        const ab = await f.arrayBuffer();
+        if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js library is not loaded');
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise;
+        info.textContent = `${escapeHtml(f.name)} · ${pdf.numPages} pages · ${(f.size / 1024).toFixed(1)} KB`;
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          // Extract text items preserving line breaks and reading order
+          const pageStrings = [];
+          let lastY = null;
+          content.items.forEach(it => {
+            if (lastY !== null && Math.abs(it.transform[5] - lastY) > 5) {
+              pageStrings.push('\n');
+            }
+            pageStrings.push(it.str + ' ');
+            lastY = it.transform[5];
+          });
+          const pageText = pageStrings.join('').replace(/[ ]+/g, ' ').trim();
+          documentModel.pages.push({
+            pageNumber: i,
+            text: pageText
+          });
+        }
+      } else if (name.endsWith('.docx')) {
+        const ab = await f.arrayBuffer();
+        if (typeof mammoth === 'undefined') throw new Error('Mammoth library is not loaded');
+        const res = await mammoth.extractRawText({ arrayBuffer: ab });
+        const fullText = (res.value || '').trim();
+        
+        // Split docx into logical pages of ~3500 chars if not paginated
+        const pageChunks = splitIntoIntelligentChunks(fullText, 3500);
+        pageChunks.forEach((chunk, idx) => {
+          documentModel.pages.push({
+            pageNumber: idx + 1,
+            text: chunk
+          });
+        });
+        info.textContent = `${escapeHtml(f.name)} · ${documentModel.pages.length} sections · ${(f.size / 1024).toFixed(1)} KB`;
+      } else if (name.endsWith('.pptx')) {
+        const ab = await f.arrayBuffer();
+        if (typeof JSZip === 'undefined') throw new Error('JSZip library is not loaded');
+        const zip = await JSZip.loadAsync(ab);
+
+        // Sort slides NUMERICALLY (slide1.xml, slide2.xml, ..., slide10.xml)
+        const slideFiles = Object.keys(zip.files)
+          .filter(p => p.match(/^ppt\/slides\/slide\d+\.xml$/i))
+          .sort((a, b) => {
+            const numA = parseInt(a.match(/slide(\d+)\.xml/i)[1], 10);
+            const numB = parseInt(b.match(/slide(\d+)\.xml/i)[1], 10);
+            return numA - numB;
+          });
+
+        if (slideFiles.length === 0) throw new Error('No slides found in PPTX');
+
+        for (let i = 0; i < slideFiles.length; i++) {
+          const xmlStr = await zip.files[slideFiles[i]].async('string');
+          const matches = xmlStr.match(/<a:t(?:[^>]*)>(.*?)<\/a:t>/gs) || [];
+          const slideText = matches.map(m => m.replace(/<[^>]+>/g, '')).join(' ').trim();
+          documentModel.pages.push({
+            pageNumber: i + 1,
+            text: slideText || `[Slide ${i + 1} empty]`
+          });
+        }
+        info.textContent = `${escapeHtml(f.name)} · ${slideFiles.length} slides · ${(f.size / 1024).toFixed(1)} KB`;
+      } else {
+        throw new Error('Unsupported format. Please upload PDF, DOCX, or PPTX.');
+      }
+
+      // Render Original Preview
+      renderDocumentPreview(documentModel, orig);
+      showToast('Document parsed successfully', 'success');
+    } catch (err) {
+      console.error('Document upload error:', err);
+      orig.innerHTML = `<div class="msg error">Parsing failed: ${escapeHtml(err.message)}</div>`;
+      showToast('Document parsing failed: ' + err.message, 'error');
+    }
+  }
+
+  function renderDocumentPreview(model, container) {
+    if (!model || !model.pages || model.pages.length === 0) {
+      container.textContent = 'No document content available.';
+      return;
+    }
+    container.innerHTML = '';
+    model.pages.forEach(p => {
+      const pageDiv = document.createElement('div');
+      pageDiv.style.marginBottom = '14px';
+      pageDiv.style.paddingBottom = '10px';
+      pageDiv.style.borderBottom = '1px dashed var(--border)';
+
+      const header = document.createElement('div');
+      header.style.fontFamily = 'var(--font-cond)';
+      header.style.fontSize = '11px';
+      header.style.letterSpacing = '0.1em';
+      header.style.color = 'var(--dim)';
+      header.style.textTransform = 'uppercase';
+      header.textContent = `${model.type.toUpperCase()} · Page ${p.pageNumber}`;
+
+      const textBody = document.createElement('div');
+      textBody.style.whiteSpace = 'pre-wrap';
+      textBody.style.marginTop = '4px';
+      textBody.textContent = p.text || '[Empty page]';
+
+      pageDiv.appendChild(header);
+      pageDiv.appendChild(textBody);
+      container.appendChild(pageDiv);
+    });
+  }
+
+  async function translateDocument() {
+    if (!documentModel || !documentModel.pages || documentModel.pages.length === 0) {
+      showToast('Please upload a valid document first.', 'warning');
+      return;
+    }
+
+    const from = $id('docFromLang').value || 'auto';
+    const to = $id('docToLang').value || 'hi';
+
+    if (from !== 'auto' && from === to) {
+      showToast('Source and Target languages cannot be identical.', 'warning');
+      return;
+    }
+
+    const btn = $id('docTranslateBtn');
+    const cancelBtn = $id('docCancelBtn');
+    const progressWrap = $id('docProgressWrap');
+    const progressText = $id('docProgressText');
+    const progressBar = $id('docProgressBar');
+    const transContainer = $id('docTranslated');
+
+    btn.disabled = true;
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    progressWrap.style.display = 'block';
+    progressBar.style.width = '0%';
+    transContainer.innerHTML = '<span class="spinner"></span>Initializing translation…';
+
+    translatedDocumentModel = {
+      filename: documentModel.filename,
+      type: documentModel.type,
+      pages: []
+    };
+
+    if (docAbortController) docAbortController.abort();
+    docAbortController = new AbortController();
+
+    const totalPages = documentModel.pages.length;
+
+    try {
+      for (let i = 0; i < totalPages; i++) {
+        if (docAbortController.signal.aborted) throw new DOMException('Document translation cancelled', 'AbortError');
+        const page = documentModel.pages[i];
+
+        progressText.textContent = `Translating page ${i + 1} of ${totalPages}…`;
+        progressBar.style.width = `${Math.round(((i) / totalPages) * 100)}%`;
+
+        let pageTranslated = '';
+        if (page.text && page.text.trim()) {
+          pageTranslated = await translateTextCore(page.text, from, to, {
+            signal: docAbortController.signal
+          });
+        }
+
+        translatedDocumentModel.pages.push({
+          pageNumber: page.pageNumber,
+          text: pageTranslated
+        });
+
+        progressBar.style.width = `${Math.round(((i + 1) / totalPages) * 100)}%`;
+      }
+
+      progressText.textContent = 'Translation complete!';
+      renderDocumentPreview(translatedDocumentModel, transContainer);
+      showToast('Document translated successfully', 'success');
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        showToast('Document translation was cancelled', 'info');
+        progressText.textContent = 'Cancelled.';
+      } else {
+        console.error('Doc translation error:', err);
+        transContainer.innerHTML = `<div class="msg error">Translation failed: ${escapeHtml(err.message)}</div>`;
+        showToast('Document translation failed: ' + err.message, 'error');
+      }
+    } finally {
+      btn.disabled = false;
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      docAbortController = null;
+    }
+  }
+
+  function cancelDocTranslation() {
+    if (docAbortController) {
+      docAbortController.abort();
+      docAbortController = null;
+    }
+  }
+
+  /**
+   * PHASE 5: REAL PAGINATED PDF EXPORT (addWrappedTextToPDF)
+   */
+  function addWrappedTextToPDF(doc, text, x, y, maxWidth, pageHeight, margin, lineHeight = 6) {
+    const lines = doc.splitTextToSize(text, maxWidth);
+    let currentY = y;
+
+    for (let i = 0; i < lines.length; i++) {
+      if (currentY + lineHeight > pageHeight - margin) {
+        doc.addPage();
+        currentY = margin + 10;
+      }
+      doc.text(lines[i], x, currentY);
+      currentY += lineHeight;
+    }
+    return currentY;
+  }
+
+  async function downloadTranslatedPDF() {
+    if (!translatedDocumentModel || !translatedDocumentModel.pages || translatedDocumentModel.pages.length === 0) {
+      showToast('Please translate the document before exporting PDF.', 'warning');
+      return;
+    }
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+
+      // Document Header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('BHASHA · Translated Document', margin, 20);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(`Source File: ${translatedDocumentModel.filename} | Exported: ${new Date().toLocaleDateString()}`, margin, 27);
+      doc.setDrawColor(200);
+      doc.line(margin, 30, pageWidth - margin, 30);
+
+      doc.setTextColor(0);
+      let currentY = 38;
+
+      for (let p = 0; p < translatedDocumentModel.pages.length; p++) {
+        const page = translatedDocumentModel.pages[p];
+
+        // Section header
+        if (currentY + 15 > pageHeight - margin) {
+          doc.addPage();
+          currentY = margin + 10;
+        }
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(50, 50, 50);
+        doc.text(`--- Section / Page ${page.pageNumber} ---`, margin, currentY);
+        currentY += 8;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(0);
+
+        currentY = addWrappedTextToPDF(doc, page.text || '[Empty section]', margin, currentY, contentWidth, pageHeight, margin, 5.5);
+        currentY += 8;
+      }
+
+      // Add page numbers in footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(130);
+        doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 15, pageHeight - 10);
+      }
+
+      const rawName = translatedDocumentModel.filename.replace(/\.[^/.]+$/, '');
+      const outName = sanitizeFilename(`BHASHA_Translated_${rawName}.pdf`);
+      doc.save(outName);
+      showToast('PDF exported successfully!', 'success');
+    } catch (err) {
+      console.error('PDF export error:', err);
+      showToast('PDF export failed: ' + err.message, 'error');
+    }
+  }
+
+  function downloadTranslatedDocTxt() {
+    if (!translatedDocumentModel || !translatedDocumentModel.pages) {
+      showToast('Translate a document first', 'warning');
+      return;
+    }
+    const full = translatedDocumentModel.pages
+      .map(p => `=== Section ${p.pageNumber} ===\n${p.text}`)
+      .join('\n\n');
+    const rawName = translatedDocumentModel.filename.replace(/\.[^/.]+$/, '');
+    downloadTxt(`BHASHA_Translated_${rawName}.txt`, full);
+  }
+
+  /* ==========================================================================
+     PHASE 6 & 8: AUDIO MODULE (SEPARATION OF TRANSCRIPTION & ANALYSIS)
+     ========================================================================== */
+  let currentAudioFile = null;
+  let audioWaveSurfer = null;
+  let audioPlayer = null;
+  let isAudioPlaying = false;
+  let audioTranscriptText = '';
+  let audioTranslatedText = '';
+
+  function handleAudioUpload(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+
+    currentAudioFile = f;
+    audioTranscriptText = '';
+    audioTranslatedText = '';
+
+    $id('audioFileInfo').textContent = `${escapeHtml(f.name)} · ${(f.size / (1024 * 1024)).toFixed(2)} MB`;
+    $id('audioAnalysis').textContent = 'Ready to analyze. Click "Analyze Metadata".';
+    $id('transcriptionResults').textContent = 'Ready to transcribe. Click "Transcribe".';
+
+    // Cleanup previous WaveSurfer instance
+    if (audioWaveSurfer) {
+      try { audioWaveSurfer.destroy(); } catch (ex) {}
+      audioWaveSurfer = null;
+    }
+    if (audioPlayer) {
+      try { audioPlayer.pause(); audioPlayer.src = ''; } catch (ex) {}
+      audioPlayer = null;
+    }
+
+    $id('audioVisualizer').innerHTML = '<span class="spinner"></span>Rendering waveform…';
+
+    const url = createTrackedUrl(f);
+    try {
+      audioWaveSurfer = WaveSurfer.create({
+        container: '#audioVisualizer',
+        waveColor: '#c8b98a',
+        progressColor: '#ffffff',
+        cursorColor: '#a8a49c',
+        barWidth: 2,
+        barRadius: 3,
+        cursorWidth: 1,
+        height: 80,
+        barGap: 3,
+        interact: true,
+        hideScrollbar: true
+      });
+
+      audioWaveSurfer.load(url);
+      audioWaveSurfer.on('ready', () => {
+        $id('playPauseBtn').disabled = false;
+        $id('stopBtn').disabled = false;
+        $id('restartBtn').disabled = false;
+      });
+      audioWaveSurfer.on('finish', () => {
+        isAudioPlaying = false;
+        $id('playPauseBtn').textContent = '▶ Play';
+      });
+      audioWaveSurfer.on('error', (err) => {
+        console.warn('WaveSurfer visualizer error:', err);
+        $id('audioVisualizer').innerHTML = '<div class="text-dim">Waveform visualizer unavailable; playback active.</div>';
+      });
+
+      audioPlayer = new Audio(url);
+      audioPlayer.onended = () => {
+        isAudioPlaying = false;
+        $id('playPauseBtn').textContent = '▶ Play';
+      };
+    } catch (err) {
+      console.warn('WaveSurfer init failure:', err);
+      $id('audioVisualizer').innerHTML = '<div class="text-dim">Standard audio player active.</div>';
+      audioPlayer = new Audio(url);
+      $id('playPauseBtn').disabled = false;
+      $id('stopBtn').disabled = false;
+      $id('restartBtn').disabled = false;
+    }
+  }
+
+  // Audio Analysis: purely acoustic metrics, never claiming to be transcription
+  async function transcribeAudioAnalysis() {
+    if (!currentAudioFile) {
+      showToast('Please upload an audio file first', 'warning');
+      return;
+    }
+
+    const container = $id('audioAnalysis');
+    container.innerHTML = '<span class="spinner"></span>Computing acoustic metrics…';
+
+    let ctx = null;
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ab = await currentAudioFile.arrayBuffer();
+      const buf = await ctx.decodeAudioData(ab);
+
+      const channelData = buf.getChannelData(0);
+      const rate = buf.sampleRate;
+      const duration = buf.duration;
+      const channels = buf.numberOfChannels;
+
+      // Calculate RMS and Peak amplitude
+      let sumSquares = 0;
+      let peak = 0;
+      let zeroCrossings = 0;
+
+      for (let i = 0; i < channelData.length; i++) {
+        const val = channelData[i];
+        sumSquares += val * val;
+        if (Math.abs(val) > peak) peak = Math.abs(val);
+        if (i > 0 && ((val >= 0 && channelData[i - 1] < 0) || (val < 0 && channelData[i - 1] >= 0))) {
+          zeroCrossings++;
+        }
+      }
+
+      const rms = Math.sqrt(sumSquares / channelData.length);
+      const zcr = zeroCrossings / duration;
+
+      container.innerHTML = `
+        <div class="msg success" style="margin-bottom:8px;">✅ Acoustic Analysis Complete</div>
+        <div style="font-size:13px;line-height:1.9;">
+          Duration: <strong>${duration.toFixed(2)}s</strong> (${Math.floor(duration / 60)}m ${Math.floor(duration % 60)}s)<br>
+          Sample Rate: <strong>${rate} Hz</strong> | Channels: <strong>${channels}</strong><br>
+          RMS Amplitude: <strong>${rms.toFixed(4)}</strong><br>
+          Peak Amplitude: <strong>${peak.toFixed(4)}</strong><br>
+          Zero Crossing Rate: <strong>${Math.round(zcr)} / sec</strong>
+        </div>
+      `;
+      showToast('Acoustic analysis complete', 'success');
+    } catch (err) {
+      console.error('Audio analysis error:', err);
+      container.innerHTML = `<div class="msg error">Analysis failed: ${escapeHtml(err.message)}</div>`;
+    } finally {
+      if (ctx && ctx.state !== 'closed') {
+        try { await ctx.close(); } catch (e) {}
+      }
+    }
+  }
+
+  // Audio File Speech Transcription
+  async function transcribeAudioFile() {
+    if (!currentAudioFile) {
+      showToast('Upload an audio file first', 'warning');
+      return;
+    }
+
+    const resContainer = $id('transcriptionResults');
+    const fromLang = $id('audioFromLang').value || 'en';
+
+    // 1. If backend STT endpoint exists, send audio for server-side Whisper transcription
+    const backendReady = await API.checkBackend();
+    if (backendReady) {
+      resContainer.innerHTML = '<span class="spinner"></span>Transcribing via Server Speech Engine…';
+      try {
+        const formData = new FormData();
+        formData.append('file', currentAudioFile);
+        formData.append('lang', fromLang);
+        const res = await fetch('/api/transcribe', { method: 'POST', body: formData });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.text) {
+            audioTranscriptText = data.text;
+            resContainer.innerHTML = `
+              <div class="msg success">Transcription Complete</div>
+              <div style="white-space:pre-wrap;margin-top:6px;">${escapeHtml(audioTranscriptText)}</div>
+            `;
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Backend STT unavailable, using browser speech-to-text fallback', err);
+      }
+    }
+
+    // 2. Client-side Speech Recognition with transparent user guidance
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      resContainer.innerHTML = `
+        <div class="msg warning">
+          Direct client-side audio file transcription requires Web Speech API (Chrome/Edge) or the serverless backend.
+        </div>
+      `;
+      return;
+    }
+
+    resContainer.innerHTML = `
+      <div class="msg info">
+        <span class="spinner"></span>Playing audio and listening via Speech Recognition…
+        <div class="text-dim" style="margin-top:4px;">Ensure your device speakers and microphone are enabled.</div>
+      </div>
+    `;
+
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = langToLocale(fromLang === 'auto' ? 'en' : fromLang);
+
+    let finalCollected = '';
+    rec.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalCollected += e.results[i][0].transcript + ' ';
+        else interim += e.results[i][0].transcript;
+      }
+      resContainer.innerHTML = `
+        <div class="msg info"><span class="spinner"></span>Transcribing…</div>
+        <div style="margin-top:6px;">${escapeHtml(finalCollected)}</div>
+        <div class="text-dim" style="font-style:italic;">${escapeHtml(interim)}</div>
+      `;
+    };
+
+    rec.onerror = (ev) => {
+      showToast('Speech capture error: ' + ev.error, 'error');
+    };
+
+    rec.onend = () => {
+      if (finalCollected.trim()) {
+        audioTranscriptText = finalCollected.trim();
+        resContainer.innerHTML = `
+          <div class="msg success">Transcription Complete</div>
+          <div style="white-space:pre-wrap;margin-top:8px;">${escapeHtml(audioTranscriptText)}</div>
+        `;
+        showToast('Transcription finished', 'success');
+      } else {
+        resContainer.innerHTML = `
+          <div class="msg warning">No speech captured. Make sure volume is audible or use the Live Speech feature.</div>
+        `;
+      }
+    };
+
+    rec.start();
+    try {
+      if (audioWaveSurfer) {
+        audioWaveSurfer.play();
+        isAudioPlaying = true;
+        $id('playPauseBtn').textContent = '⏸ Pause';
+      } else if (audioPlayer) {
+        await audioPlayer.play();
+        isAudioPlaying = true;
+        $id('playPauseBtn').textContent = '⏸ Pause';
+      }
+    } catch (e) {
+      showToast('Playback permission error: click Play to begin playback.', 'warning');
+    }
+
+    const stopHandler = () => {
+      setTimeout(() => {
+        try { rec.stop(); } catch (e) {}
+      }, 500);
+    };
+
+    if (audioWaveSurfer) audioWaveSurfer.once('finish', stopHandler);
+    if (audioPlayer) audioPlayer.onended = stopHandler;
+  }
+
+  async function translateAudioTranscript() {
+    if (!audioTranscriptText) {
+      showToast('Please transcribe the audio first.', 'warning');
+      return;
+    }
+    const from = $id('audioFromLang').value || 'auto';
+    const to = $id('audioToLang').value || 'hi';
+    const container = $id('transcriptionResults');
+
+    container.innerHTML = '<span class="spinner"></span>Translating transcript…';
+    try {
+      audioTranslatedText = await translateTextCore(audioTranscriptText, from, to);
+      container.innerHTML = `
+        <div class="msg success">Translated (${from} → ${to})</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">ORIGINAL TRANSCRIPT:</div>
+        <div style="font-size:12px;color:var(--silver);margin-bottom:8px;">${escapeHtml(audioTranscriptText)}</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:8px;">TRANSLATED RESULT:</div>
+        <div style="font-size:14px;color:var(--platinum);white-space:pre-wrap;">${escapeHtml(audioTranslatedText)}</div>
+      `;
+      showToast('Audio transcript translated', 'success');
+    } catch (err) {
+      container.innerHTML = `<div class="msg error">Translation failed: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function downloadAudioTranscript() {
+    if (!audioTranscriptText) {
+      showToast('No transcript available to download', 'warning');
+      return;
+    }
+    const content = audioTranslatedText
+      ? `=== ORIGINAL TRANSCRIPT ===\n${audioTranscriptText}\n\n=== TRANSLATED (${$id('audioToLang').value}) ===\n${audioTranslatedText}`
+      : audioTranscriptText;
+    const base = currentAudioFile ? currentAudioFile.name.replace(/\.[^/.]+$/, '') : 'audio';
+    downloadTxt(sanitizeFilename(`BHASHA_Transcript_${base}.txt`), content);
+  }
+
+  function toggleAudioPlayback() {
+    if (audioWaveSurfer) {
+      audioWaveSurfer.playPause();
+      isAudioPlaying = audioWaveSurfer.isPlaying();
+      $id('playPauseBtn').textContent = isAudioPlaying ? '⏸ Pause' : '▶ Play';
+    } else if (audioPlayer) {
+      if (audioPlayer.paused) {
+        audioPlayer.play();
+        isAudioPlaying = true;
+        $id('playPauseBtn').textContent = '⏸ Pause';
+      } else {
+        audioPlayer.pause();
+        isAudioPlaying = false;
+        $id('playPauseBtn').textContent = '▶ Play';
+      }
+    }
+  }
+
+  function stopAudioPlayback() {
+    if (audioWaveSurfer) {
+      audioWaveSurfer.stop();
+    }
+    if (audioPlayer) {
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+    }
+    isAudioPlaying = false;
+    $id('playPauseBtn').textContent = '▶ Play';
+  }
+
+  function restartAudioPlayback() {
+    if (audioWaveSurfer) {
+      audioWaveSurfer.seekTo(0);
+      audioWaveSurfer.play();
+      isAudioPlaying = true;
+      $id('playPauseBtn').textContent = '⏸ Pause';
+    } else if (audioPlayer) {
+      audioPlayer.currentTime = 0;
+      audioPlayer.play();
+      isAudioPlaying = true;
+      $id('playPauseBtn').textContent = '⏸ Pause';
+    }
+  }
+
+  /* ==========================================================================
+     PHASE 9, 10, 12, 13 & 14: VIDEO MODULE, OCR & SUBTITLE SYSTEM
+     ========================================================================== */
+  let currentVideoFile = null;
+  let subtitleSegments = []; // { id, startMS, endMS, text, translatedText }
+  let videoRec = null;
+
+  function handleVideoUpload(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    currentVideoFile = f;
+    const v = $id('previewVideo');
+
+    // Revoke old video object url if present
+    if (v.src && v.src.startsWith('blob:')) {
+      revokeTrackedUrl(v.src);
+    }
+
+    const url = createTrackedUrl(f);
+    v.src = url;
+    v.load();
+
+    subtitleSegments = [];
+    renderSubtitleEditor();
+    $id('videoFileInfo').textContent = `${escapeHtml(f.name)} · ${(f.size / (1024 * 1024)).toFixed(1)} MB`;
+    showToast('Video loaded successfully', 'success');
+  }
+
+  function loadVideoFromLink() {
+    const link = $id('videoLink').value.trim();
+    if (!link) {
+      showToast('Please enter a video URL', 'warning');
+      return;
+    }
+
+    if (link.includes('youtube.com') || link.includes('youtu.be') || link.includes('vimeo.com')) {
+      $id('subtitleEditor').innerHTML = `
+        <div class="msg warning">
+          Direct stream extraction from YouTube/Vimeo requires a backend streaming worker due to platform CORS security.
+          <br><br>
+          Please download and upload the video file directly (MP4 / WebM / MOV).
+        </div>
+      `;
+      showToast('Please upload the video file directly for processing', 'warning');
+      return;
+    }
+
+    // Direct video stream URL
+    const v = $id('previewVideo');
+    v.src = link;
+    v.load();
+    subtitleSegments = [];
+    renderSubtitleEditor();
+    showToast('Video stream link loaded', 'info');
+  }
+
+  function startVideoTranscription() {
+    const v = $id('previewVideo');
+    if (!v.src || v.src === window.location.href) {
+      showToast('Please upload or load a video first.', 'warning');
+      return;
+    }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      showToast('SpeechRecognition not supported in this browser. Use Chrome or Edge.', 'error');
+      return;
+    }
+
+    if (videoRec) { videoRec.stop(); videoRec = null; }
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = false;
+
+    const vidLang = $id('videoFromLang').value || 'en';
+    rec.lang = langToLocale(vidLang);
+
+    let segIndex = subtitleSegments.length;
+
+    rec.onresult = (e) => {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) {
+          const txt = r[0].transcript.trim();
+          if (txt) {
+            // Actual video timeline timestamps
+            const currentSec = v.currentTime || 0;
+            const startMS = Math.max(0, Math.round((currentSec - 2.5) * 1000));
+            const endMS = Math.round(currentSec * 1000);
+
+            subtitleSegments.push({
+              id: ++segIndex,
+              startMS: Math.min(startMS, endMS - 500),
+              endMS: endMS,
+              text: txt,
+              translatedText: ''
+            });
+            renderSubtitleEditor();
+          }
+        }
+      }
+    };
+
+    rec.onerror = (ev) => showToast('Video transcription error: ' + ev.error, 'error');
+    rec.onend = () => { videoRec = null; };
+
+    rec.start();
+    videoRec = rec;
+    v.play().catch(() => {});
+    showToast('Video transcription active — listening to audio track', 'info');
+  }
+
+  function stopVideoTranscription() {
+    if (videoRec) {
+      videoRec.stop();
+      videoRec = null;
+      showToast('Video transcription stopped', 'info');
+    }
+  }
+
+  /* Video OCR with Image Preprocessing & Accurate Timestamps */
+  async function extractOCR() {
+    const v = $id('previewVideo');
+    if (!v || !v.src) {
+      showToast('Load a video file first', 'warning');
+      return;
+    }
+
+    if (typeof Tesseract === 'undefined') {
+      showToast('Tesseract OCR engine is not loaded', 'error');
+      return;
+    }
+
+    const ocrLangCode = $id('ocrLang').value || 'en';
+    const tesseractLang = langToOcrCode(ocrLangCode);
+    const ocrBtn = $id('ocrFrameBtn');
+    const origHtml = ocrBtn.innerHTML;
+
+    ocrBtn.innerHTML = '<span class="spinner"></span>Processing OCR…';
+    ocrBtn.disabled = true;
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = v.videoWidth || 640;
+      canvas.height = v.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+
+      // Preprocessing: Grayscale & Contrast enhancement
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        // Luminance formula
+        const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+        // Contrast stretching
+        const contrast = 1.3;
+        const adjusted = ((gray - 128) * contrast) + 128;
+        const clamped = Math.max(0, Math.min(255, adjusted));
+        d[i] = clamped;
+        d[i + 1] = clamped;
+        d[i + 2] = clamped;
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      const result = await Tesseract.recognize(canvas, tesseractLang);
+      const text = (result?.data?.text || '').trim();
+      const confidence = Math.round(result?.data?.confidence || 0);
+
+      if (text) {
+        const currentTime = v.currentTime || 0;
+        const startMS = Math.round(currentTime * 1000);
+        const endMS = Math.round((currentTime + 3) * 1000);
+
+        subtitleSegments.push({
+          id: subtitleSegments.length + 1,
+          startMS,
+          endMS,
+          text: text,
+          translatedText: ''
+        });
+
+        renderSubtitleEditor();
+        showToast(`OCR Success (${confidence}% confidence): ${text.slice(0, 40)}…`, 'success');
+      } else {
+        showToast('No readable text found on current frame.', 'warning');
+      }
+    } catch (err) {
+      console.error('OCR failure:', err);
+      showToast('OCR failed: ' + err.message, 'error');
+    } finally {
+      ocrBtn.innerHTML = origHtml;
+      ocrBtn.disabled = false;
+    }
+  }
+
+  /* Subtitle Editor with Bidirectional Synchronization */
+  function renderSubtitleEditor() {
+    const el = $id('subtitleEditor');
+    if (!subtitleSegments || subtitleSegments.length === 0) {
+      el.innerHTML = '<div class="text-dim">No subtitles yet. Transcribe audio or use "OCR Frame".</div>';
+      return;
+    }
+
+    el.innerHTML = '';
+    subtitleSegments.forEach((seg, idx) => {
+      const segBox = document.createElement('div');
+      segBox.className = 'subtitle-segment';
+
+      const header = document.createElement('div');
+      header.className = 'segment-header';
+
+      const title = document.createElement('span');
+      title.textContent = `SEGMENT ${idx + 1} · ${toSrtTime(seg.startMS)} → ${toSrtTime(seg.endMS)}`;
+
+      const actions = document.createElement('div');
+      actions.className = 'segment-actions';
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-sm btn-danger';
+      delBtn.textContent = '✕ Delete';
+      delBtn.onclick = () => deleteSubtitleSegment(idx);
+
+      actions.appendChild(delBtn);
+      header.appendChild(title);
+      header.appendChild(actions);
+
+      // Editable text
+      const editable = document.createElement('div');
+      editable.contentEditable = 'true';
+      editable.textContent = seg.text;
+      // Sync edits immediately back into model
+      editable.oninput = (ev) => {
+        subtitleSegments[idx].text = ev.target.textContent;
+      };
+
+      segBox.appendChild(header);
+      segBox.appendChild(editable);
+
+      if (seg.translatedText) {
+        const transLabel = document.createElement('div');
+        transLabel.style.fontSize = '11px';
+        transLabel.style.color = 'var(--accent)';
+        transLabel.style.marginTop = '6px';
+        transLabel.textContent = `Translated: ${seg.translatedText}`;
+        segBox.appendChild(transLabel);
+      }
+
+      el.appendChild(segBox);
+    });
+  }
+
+  function deleteSubtitleSegment(index) {
+    subtitleSegments.splice(index, 1);
+    renderSubtitleEditor();
+    showToast('Segment removed', 'info');
+  }
+
+  function addNewSubtitleSegment() {
+    const v = $id('previewVideo');
+    const ct = v.currentTime || 0;
+    const startMS = Math.round(ct * 1000);
+    const endMS = startMS + 3000;
+
+    subtitleSegments.push({
+      id: subtitleSegments.length + 1,
+      startMS,
+      endMS,
+      text: 'New subtitle text…',
+      translatedText: ''
+    });
+    renderSubtitleEditor();
+  }
+
+  function toSrtTime(ms) {
+    if (isNaN(ms) || ms < 0) ms = 0;
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    const rem = ms % 1000;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(rem).padStart(3, '0')}`;
+  }
+
+  async function translateSubtitles() {
+    if (!subtitleSegments.length) {
+      showToast('No subtitles to translate', 'warning');
+      return;
+    }
+
+    const to = $id('subtitleLang').value || 'hi';
+    const btn = $id('subTranslateBtn');
+    const origHtml = btn.innerHTML;
+
+    btn.innerHTML = '<span class="spinner"></span>Translating…';
+    btn.disabled = true;
+
+    try {
+      for (let i = 0; i < subtitleSegments.length; i++) {
+        const seg = subtitleSegments[i];
+        if (seg.text && seg.text.trim()) {
+          seg.translatedText = await API.translateChunk(seg.text, 'auto', to);
+        }
+      }
+      renderSubtitleEditor();
+      showToast('Subtitles translated successfully', 'success');
+    } catch (err) {
+      showToast('Subtitle translation failed: ' + err.message, 'error');
+    } finally {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+    }
+  }
+
+  function generateSrtContent(useTranslated = true) {
+    let srt = '';
+    subtitleSegments.forEach((seg, i) => {
+      const txt = (useTranslated && seg.translatedText) ? seg.translatedText : seg.text;
+      srt += `${i + 1}\n${toSrtTime(seg.startMS)} --> ${toSrtTime(seg.endMS)}\n${txt}\n\n`;
+    });
+    return srt;
+  }
+
+  function generateVttContent(useTranslated = true) {
+    let vtt = 'WEBVTT\n\n';
+    subtitleSegments.forEach((seg, i) => {
+      const txt = (useTranslated && seg.translatedText) ? seg.translatedText : seg.text;
+      // VTT format requires period for milliseconds
+      const start = toSrtTime(seg.startMS).replace(',', '.');
+      const end = toSrtTime(seg.endMS).replace(',', '.');
+      vtt += `${i + 1}\n${start} --> ${end}\n${txt}\n\n`;
+    });
+    return vtt;
+  }
+
+  function downloadSRT() {
+    if (!subtitleSegments.length) {
+      showToast('No subtitles to export', 'warning');
+      return;
+    }
+    const content = generateSrtContent(true);
+    const base = currentVideoFile ? currentVideoFile.name.replace(/\.[^/.]+$/, '') : 'video';
+    downloadTxt(sanitizeFilename(`BHASHA_${base}_subtitles.srt`), content);
+  }
+
+  function downloadVTT() {
+    if (!subtitleSegments.length) {
+      showToast('No subtitles to export', 'warning');
+      return;
+    }
+    const content = generateVttContent(true);
+    const base = currentVideoFile ? currentVideoFile.name.replace(/\.[^/.]+$/, '') : 'video';
+    downloadTxt(sanitizeFilename(`BHASHA_${base}_subtitles.vtt`), content);
+  }
+
+  /* ==========================================================================
+     PHASE 17: BROWSER COMPATIBILITY & SYSTEM INITIALIZATION
+     ========================================================================== */
+  function showToast(msg, type = 'info') {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+
+    const t = document.createElement('div');
+    t.className = 'msg ' + type + ' toast';
+    t.style.cssText = 'position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:9999;min-width:260px;max-width:calc(100vw - 32px);text-align:center;box-shadow:0 6px 28px rgba(0,0,0,0.8);font-family:var(--font-cond);font-size:13px;letter-spacing:0.1em;border-radius:2px;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+
+    setTimeout(() => {
+      t.style.opacity = '0';
+      t.style.transition = 'opacity 0.4s';
+      setTimeout(() => t.remove(), 400);
+    }, 3200);
+  }
+
+  function checkBrowserCompatibility() {
+    const issues = [];
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      issues.push('Web Speech API unsupported (Live mic features may be restricted)');
+    }
+    if (!window.AudioContext && !window.webkitAudioContext) {
+      issues.push('AudioContext unsupported (Audio analysis unavailable)');
+    }
+    if (issues.length > 0) {
+      const w = $id('compatWarning');
+      w.innerHTML = `<div style="padding:10px 16px;"><div class="msg warning">${issues.map(escapeHtml).join(' · ')}</div></div>`;
+      w.style.display = 'block';
+    }
+  }
+
+  // Nav switching
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       this.classList.add('active');
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       const panel = document.getElementById(this.dataset.panel);
-      if (panel) { panel.classList.add('active'); window.scrollTo(0,0); }
+      if (panel) {
+        panel.classList.add('active');
+        window.scrollTo(0, 0);
+      }
     });
   });
 
-  // ─── HELPERS ───
-  const LANG_TO_LOCALE = {
-    en:'en-US', hi:'hi-IN', mr:'mr-IN', gu:'gu-IN', ta:'ta-IN',
-    bn:'bn-IN', te:'te-IN', kn:'kn-IN', auto:'hi-IN'
-  };
-  function langToLocale(c){ return LANG_TO_LOCALE[c] || (c&&c.includes('-')?c:(c||'en')+'-IN'); }
-  function $id(id){ return document.getElementById(id); }
-
-  // ─── PARSE GOOGLE TRANSLATE ───
-  function parseGoogleTranslate(data){
-    try{
-      if(Array.isArray(data) && data.length>0 && Array.isArray(data[0])){
-        return data[0].map(s=>Array.isArray(s)&&s[0]?s[0]:'').join('');
-      }
-      if(data&&data.responseData&&data.responseData.translatedText) return data.responseData.translatedText;
-      return '';
-    }catch(e){ console.error('parse error',e); return ''; }
-  }
-
-  // ─── TRANSLATE TEXT ───
-  async function translateText(){
-    const input = $id('inputText').value.trim();
-    const fromLang = $id('fromLang').value || 'auto';
-    const toLang = $id('toLang').value || 'hi';
-    if(!input){ showToast('Please enter some text.','warning'); return ''; }
-
-    const domain = $id('domain')?$id('domain').value:'General';
-    const q = (domain&&domain!=='General')?`[Context:${domain}] ${input}`:input;
-
-    const btn = document.querySelector('#text-panel .btn-primary');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner"></span>Translating…';
-    btn.disabled = true;
-
-    try{
-      const url = 'https://api.allorigins.win/raw?url='+encodeURIComponent(
-        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${encodeURIComponent(q)}`
-      );
-      const res = await fetch(url);
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      const data = await res.json();
-      const out = parseGoogleTranslate(data)||'';
-      $id('outputText').value = out;
-      btn.innerHTML = orig; btn.disabled = false;
-      return out;
-    }catch(err){
-      btn.innerHTML = orig; btn.disabled = false;
-      showToast('Translation failed: '+err.message,'error');
-      return '';
-    }
-  }
-
-  // ─── REWRITE RULES ───
-  const RULES = {
-    en:{ formal:{"hi":"hello","hey":"hello","thanks":"thank you","gonna":"going to","wanna":"want to","ok":"okay"},informal:{"hello":"hey","please inform me":"let me know","please":"pls","do not":"don't"} },
-    hi:{ formal:{"हाय":"नमस्कार","हेलो":"नमस्कार","बताओ":"कृपया बताइए"},informal:{"नमस्कार":"हाय","कृपया":"प्लीज"} },
-    default:{ formal:{},informal:{} }
-  };
-  function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
-  function applyReplacements(text,reps){
-    if(!reps) return text;
-    let out=text;
-    Object.keys(reps).sort((a,b)=>b.length-a.length).forEach(k=>{
-      if(!k) return;
-      out=out.replace(new RegExp('\\b'+escapeRegex(k)+'\\b','gi'),reps[k]);
-    });
-    return out;
-  }
-
-  function grammarFixSimple(text,lang){
-    if(!text) return text;
-    lang=(lang||'en').toLowerCase();
-    if(lang==='en'){
-      let t=text.replace(/\s+/g,' ').trim();
-      t=t.replace(/\s+([,?.!;:])/g,'$1');
-      t=t.replace(/([.!?])\s*([a-z])/g,(m,p,c)=>p+' '+c.toUpperCase());
-      t=t.replace(/^([a-z])/,(m,c)=>c.toUpperCase());
-      return t;
-    }
-    if(['hi','mr','gu','bn','te','kn','ta'].includes(lang)){
-      return text.replace(/\s+/g,' ').trim().replace(/\s+([,।!?])/g,'$1');
-    }
-    return text.replace(/\s+/g,' ').trim();
-  }
-
-  async function grammarFix(){
-    const t=await translateText(); if(!t) return;
-    $id('outputText').value=grammarFixSimple(t,$id('toLang').value||'en');
-  }
-  async function rewriteStyle(style){
-    const t=await translateText(); if(!t) return;
-    const lang=$id('toLang').value||'en';
-    const rules=RULES[lang]||RULES.default;
-    let out=t;
-    if(style==='formal'&&rules.formal) out=applyReplacements(out,rules.formal);
-    else if(style==='informal'&&rules.informal) out=applyReplacements(out,rules.informal);
-    $id('outputText').value=grammarFixSimple(out,lang);
-  }
-
-  // ─── TONE ───
-  function setTone(tone,btn){
-    document.querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('selected'));
-    if(btn) btn.classList.add('selected');
-    console.log('Tone:',tone);
-  }
-
-  // ─── SPEECH RECOGNITION ───
-  let recognition=null;
-  function startListening(){
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){ showToast('Speech Recognition not supported. Use Chrome/Edge.','warning'); return; }
-    if(recognition){ recognition.stop(); recognition=null; }
-    try{
-      recognition=new SR();
-      recognition.lang=langToLocale($id('fromLang').value||'en');
-      recognition.interimResults=true;
-      recognition.continuous=true;
-      recognition.onresult=(e)=>{
-        let t='';
-        for(let i=e.resultIndex;i<e.results.length;++i) t+=e.results[i][0].transcript;
-        $id('inputText').value=t;
-        $id('micBtn').textContent='🔴 Listening…';
-        $id('micBtn').classList.add('active-mic');
-      };
-      recognition.onerror=(e)=>{ showToast('Mic error: '+e.error,'error'); resetMicBtn(); };
-      recognition.onend=()=>resetMicBtn();
-      recognition.start();
-    }catch(e){ showToast('Mic setup failed: '+e.message,'error'); }
-  }
-  function resetMicBtn(){ $id('micBtn').textContent='🎙 Mic'; $id('micBtn').classList.remove('active-mic'); }
-  function stopListening(){ if(recognition){ recognition.stop(); recognition=null; } }
-
-  // ─── LIVE TRANSLATE ───
-  let liveRec=null;
-  function startTranslateLive(){
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){ showToast('Speech Recognition not supported. Use Chrome/Edge.','warning'); return; }
-    if(liveRec){ liveRec.stop(); liveRec=null; }
-    liveRec=new SR();
-    liveRec.continuous=true; liveRec.interimResults=true;
-    const speechLang=$id('liveSpeechLang').value||'en';
-    const toLang=$id('liveToLang')?$id('liveToLang').value:'hi';
-    liveRec.lang=langToLocale(speechLang==='auto'?'en':speechLang);
-    liveRec.onresult=async(e)=>{
-      let fin='',interim='';
-      for(let i=0;i<e.results.length;i++){
-        const r=e.results[i];
-        if(r.isFinal) fin+=r[0].transcript+' ';
-        else interim+=r[0].transcript;
-      }
-      $id('liveTranscript').innerHTML=`<div class="text-dim">Interim: ${interim}</div><div>Final: ${fin}</div>`;
-      if(fin.trim()){
-        try{
-          const slang=speechLang==='auto'?'auto':speechLang;
-          const url='https://api.allorigins.win/raw?url='+encodeURIComponent(
-            `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${slang}&tl=${toLang}&dt=t&q=${encodeURIComponent(fin.trim())}`
-          );
-          const res=await fetch(url);
-          if(res.ok){
-            const data=await res.json();
-            const translated=parseGoogleTranslate(data)||fin;
-            $id('liveTranscript').innerHTML=`<div class="text-dim">Original: ${fin}</div><div style="margin-top:8px;color:var(--platinum)">Translated: ${translated}</div>`;
-          }
-        }catch(ex){ console.error(ex); }
-      }
-    };
-    liveRec.onerror=(ev)=>showToast('Live mic error: '+ev.error,'error');
-    liveRec.onend=()=>console.log('Live rec ended');
-    liveRec.start();
-    showToast('Live translation started — speak now','success');
-  }
-  function stopTranslateLive(){ if(liveRec){ liveRec.stop(); liveRec=null; showToast('Live translation stopped','info'); } }
-
-  // ─── SPEAK / COPY / DOWNLOAD ───
-  function speakText(){
-    const text=$id('outputText').value;
-    if(!text){ showToast('Nothing to speak','warning'); return; }
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang=langToLocale($id('toLang').value||'en');
-    speechSynthesis.speak(u);
-  }
-  function clearInput(){ $id('inputText').value=''; }
-  function copyOut(){ 
-    const v=$id('outputText').value||'';
-    if(!v){ showToast('Nothing to copy','warning'); return; }
-    navigator.clipboard.writeText(v).then(()=>showToast('Copied!','success')).catch(()=>showToast('Copy failed','error'));
-  }
-  function downloadTxt(name,text){
-    if(!text){ showToast('Nothing to download','warning'); return; }
-    const a=document.createElement('a');
-    const blob=new Blob([text||''],{type:'text/plain'});
-    a.href=URL.createObjectURL(blob); a.download=name; a.click();
-    URL.revokeObjectURL(a.href);
-  }
-
-  // ─── DOCUMENT ───
-  let lastDocText='';
-  async function handleDocUpload(e){
-    const f=e.target.files[0]; if(!f) return;
-    const orig=$id('docOriginal'),trans=$id('docTranslated');
-    orig.innerHTML='<span class="text-dim">Loading…</span>'; trans.innerHTML='';
-    const name=f.name.toLowerCase();
-    try{
-      if(name.endsWith('.docx')){
-        const ab=await f.arrayBuffer();
-        const res=await mammoth.convertToHtml({arrayBuffer:ab});
-        orig.innerHTML=res.value;
-        lastDocText=(res.value||'').replace(/<[^>]*>/g,' ');
-      }else if(name.endsWith('.pdf')){
-        const ab=await f.arrayBuffer();
-        const pdf=await pdfjsLib.getDocument({data:new Uint8Array(ab)}).promise;
-        let full='';
-        for(let i=1;i<=pdf.numPages;i++){
-          const page=await pdf.getPage(i);
-          const content=await page.getTextContent();
-          full+=' '+content.items.map(it=>it.str).join(' ');
-        }
-        orig.innerText=full.slice(0,20000); lastDocText=full;
-      }else if(name.endsWith('.pptx')){
-        const ab=await f.arrayBuffer();
-        const zip=await JSZip.loadAsync(ab);
-        // Fix: use Promise.all so all slide reads complete before joining
-        const slideKeys=Object.keys(zip.files).filter(p=>p.startsWith('ppt/slides/slide'));
-        const slideTexts=await Promise.all(slideKeys.map(async s=>{
-          const c=await zip.files[s].async('string');
-          return (c.match(/<a:t>(.*?)<\/a:t>/g)||[]).map(x=>x.replace(/<.*?>/g,'')).join(' ');
-        }));
-        const text=slideTexts.join(' ');
-        orig.innerText=text.slice(0,20000); lastDocText=text;
-      }else{ orig.innerText='Unsupported format. Use PDF, DOCX, or PPTX.'; }
-    }catch(err){ orig.innerText='Parsing failed: '+err.message; console.error(err); }
-  }
-
-  async function translateDocument(){
-    if(!lastDocText){ showToast('No document loaded. Upload a file first.','warning'); return; }
-    // Use document-panel specific language selectors
-    const tgt=$id('docToLang')?$id('docToLang').value:'hi';
-    const from=$id('docFromLang')?$id('docFromLang').value:'auto';
-    const chunks=chunkString(lastDocText.trim(),4000);
-    let translated='';
-    const trans=$id('docTranslated');
-    trans.innerHTML='<span class="text-dim">Translating… 0%</span>';
-    try{
-      for(let i=0;i<chunks.length;i++){
-        const url='https://api.allorigins.win/raw?url='+encodeURIComponent(
-          `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${tgt}&dt=t&q=${encodeURIComponent(chunks[i])}`
-        );
-        const r=await fetch(url);
-        if(!r.ok) throw new Error('HTTP '+r.status);
-        const d=await r.json();
-        if(Array.isArray(d)&&d[0]&&Array.isArray(d[0])){
-          d[0].forEach(seg=>{ if(Array.isArray(seg)&&seg[0]) translated+=seg[0]; });
-        }
-        const pct=Math.round(((i+1)/chunks.length)*100);
-        trans.innerHTML=`<span class="text-dim">Translating… ${pct}%</span>`;
-      }
-      trans.innerHTML=`<div class="msg success" style="margin-bottom:8px;">✅ Translation complete!</div><div>${translated}</div>`;
-      window.translatedDocumentText=translated;
-      window.originalDocumentText=lastDocText;
-    }catch(e){ trans.innerHTML=`<div class="msg error">❌ ${e.message}</div>`; }
-  }
-
-  async function downloadTranslatedPDF(){
-    if(!window.translatedDocumentText){ showToast('Translate a document first','warning'); return; }
-    try{
-      const {jsPDF}=window.jspdf;
-      const doc=new jsPDF();
-      doc.setFont('helvetica'); doc.setFontSize(16);
-      doc.text('Translated Document',20,20);
-      doc.setFontSize(12);
-      let y=40;
-      doc.setFontSize(14); doc.text('Original:',20,y); y+=8;
-      doc.setFontSize(10);
-      const origLines=doc.splitTextToSize(window.originalDocumentText.substring(0,1000),170);
-      doc.text(origLines,20,y); y+=origLines.length*7+10;
-      if(y>250){ doc.addPage(); y=20; }
-      doc.setFontSize(14); doc.text('Translated:',20,y); y+=8;
-      doc.setFontSize(10);
-      const transLines=doc.splitTextToSize(window.translatedDocumentText,170);
-      doc.text(transLines,20,y);
-      doc.save('translated_document.pdf');
-    }catch(err){ showToast('PDF generation failed: '+err.message,'error'); }
-  }
-
-  function chunkString(str,size){ const c=[]; for(let i=0;i<str.length;i+=size) c.push(str.slice(i,i+size)); return c; }
-
-  // ─── AUDIO ───
-  let audioFile=null, wavesurfer=null, audioTranscript='', audioSegments=[], audioElement=null, isPlaying=false;
-
-  function handleAudioUpload(e){
-    const f=e.target.files[0]; if(!f) return;
-    audioFile=f;
-    if(wavesurfer){ try{ wavesurfer.destroy(); }catch(ex){} wavesurfer=null; }
-    $id('audioVisualizer').innerHTML='<span class="text-dim" style="font-size:13px;">Initializing waveform…</span>';
-    try{
-      wavesurfer=WaveSurfer.create({
-        container:'#audioVisualizer',
-        waveColor:'#c8b98a',
-        progressColor:'#ffffff',
-        cursorColor:'#a8a49c',
-        barWidth:2,barRadius:3,cursorWidth:1,height:80,barGap:3,
-        interact:true,hideScrollbar:true
-        // Note: 'backend' option removed — WaveSurfer v6 uses WebAudio by default
-      });
-      const url=URL.createObjectURL(f);
-      wavesurfer.load(url);
-      if(audioElement){ try{ audioElement.src=''; }catch(ex){} }
-      audioElement=new Audio(url);
-      audioElement.onended=()=>{ isPlaying=false; $id('playPauseBtn').textContent='▶ Play'; };
-      $id('playPauseBtn').disabled=false;
-      $id('stopBtn').disabled=false;
-      $id('restartBtn').disabled=false;
-      wavesurfer.on('ready',()=>{ $id('audioAnalysis').innerHTML='<div class="msg success">✅ Audio loaded! Use Transcribe to process.</div>'; });
-      wavesurfer.on('error',(e)=>{ console.error('WaveSurfer error',e); $id('audioAnalysis').innerHTML='<div class="msg warning">⚠️ Waveform visualization failed but audio is loaded.</div>'; });
-    }catch(err){
-      console.error('WaveSurfer init failed:',err);
-      const url=URL.createObjectURL(f);
-      audioElement=new Audio(url);
-      $id('playPauseBtn').disabled=false; $id('stopBtn').disabled=false; $id('restartBtn').disabled=false;
-      $id('audioAnalysis').innerHTML='<div class="msg warning">⚠️ Waveform unavailable, audio loaded for playback.</div>';
-    }
-  }
-
-  // Audio analysis (waveform stats only — no fake transcription)
-  async function transcribeAudioAnalysis(){
-    if(!audioFile){ showToast('Upload an audio file first','warning'); return; }
-    $id('audioAnalysis').innerHTML='<div class="msg info"><span class="spinner"></span>Analyzing audio…</div>';
-    try{
-      const ctx=new(window.AudioContext||window.webkitAudioContext)();
-      const ab=await audioFile.arrayBuffer();
-      const buf=await ctx.decodeAudioData(ab);
-      const data=buf.getChannelData(0);
-      const rate=buf.sampleRate, dur=buf.duration;
-      const segs=analyzeAudioSegments(data,rate,dur);
-      audioSegments=segs;
-      const speechSegs=segs.filter(s=>s.hasSpeech);
-      const avgAmp=segs.reduce((a,s)=>a+s.amplitude,0)/segs.length;
-      $id('audioAnalysis').innerHTML=`<div class="msg success">✅ Analysis complete!</div><div style="font-size:13px;margin-top:8px;line-height:2;">Duration: <strong>${dur.toFixed(2)}s</strong><br>Sample Rate: <strong>${rate} Hz</strong><br>Segments: <strong>${segs.length}</strong><br>Speech Segments: <strong>${speechSegs.length}</strong><br>Avg Amplitude: <strong>${avgAmp.toFixed(4)}</strong></div>`;
-      $id('transcriptionResults').innerHTML='<div class="msg info">ℹ️ Audio analyzed. Use <strong>Transcribe</strong> for speech-to-text.</div>';
-      ctx.close();
-    }catch(err){
-      $id('audioAnalysis').innerHTML=`<div class="msg error">❌ ${err.message}</div>`;
-    }
-  }
-
-  function analyzeAudioSegments(channelData,sampleRate,duration){
-    const segs=[],segLen=2,sps=segLen*sampleRate;
-    for(let i=0;i<channelData.length;i+=sps){
-      const sd=channelData.slice(i,i+sps);
-      const amp=Math.sqrt(sd.reduce((s,x)=>s+x*x,0)/sd.length);
-      const hasSpeech=detectSpeechSegment(sd,sampleRate,amp);
-      const speechConfidence=calculateSpeechConfidence(sd,sampleRate,amp);
-      segs.push({start:i/sampleRate,end:Math.min((i+sps)/sampleRate,duration),amplitude:amp,hasSpeech,speechConfidence,energy:calculateEnergy(sd),frequency:analyzeFrequencyContent(sd,sampleRate)});
-    }
-    return segs;
-  }
-  function detectSpeechSegment(d,sr,amp){
-    const e=calculateEnergy(d),zc=calculateZeroCrossings(d),sc=calculateSpectralCentroid(d,sr);
-    return (amp>0.003&&amp<0.8)&&(e>0.0001&&e<0.5)&&(zc>100&&zc<5000)&&(sc>500&&sc<8000);
-  }
-  function calculateSpeechConfidence(d,sr,amp){
-    let c=0;
-    const e=calculateEnergy(d),zc=calculateZeroCrossings(d),sc=calculateSpectralCentroid(d,sr);
-    if(amp>0.01&&amp<0.6) c+=25; else if(amp>0.005&&amp<0.8) c+=15;
-    if(e>0.001&&e<0.3) c+=25; else if(e>0.0001&&e<0.5) c+=15;
-    if(zc>200&&zc<3000) c+=25; else if(zc>100&&zc<5000) c+=15;
-    if(sc>1000&&sc<6000) c+=25; else if(sc>500&&sc<8000) c+=15;
-    return Math.min(c,100);
-  }
-  function calculateZeroCrossings(d){ let c=0; for(let i=1;i<d.length;i++) if((d[i]>=0&&d[i-1]<0)||(d[i]<0&&d[i-1]>=0)) c++; return c; }
-  function calculateSpectralCentroid(d,sr){ const zc=calculateZeroCrossings(d); return (zc*sr)/(2*d.length); }
-  function analyzeFrequencyContent(d,sr){ const f=(calculateZeroCrossings(d)*sr)/(2*d.length); return {dominant:f,range:{low:Math.max(0,f*0.5),high:Math.min(sr/2,f*2)}}; }
-  function calculateEnergy(d){ return d.reduce((s,x)=>s+x*x,0)/d.length; }
-  function formatTime(s){ const m=Math.floor(s/60); return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`; }
-
-
-  function displayTranscriptionResults(tr){
-    $id('transcriptionResults').innerHTML=`<div class="msg success" style="margin-bottom:8px;">📝 Transcription Ready</div><pre style="white-space:pre-wrap;font-size:12px;color:#a8a49c;">${tr}</pre>`;
-  }
-
-  async function translateTextForAudio(text,from,to){
-    const url='https://api.allorigins.win/raw?url='+encodeURIComponent(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`);
-    const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
-    return parseGoogleTranslate(await res.json())||text;
-  }
-
-  async function translateAudioFile(){
-    if(!audioTranscript){ showToast('Transcribe the audio first','warning'); return; }
-    const from=$id('audioFromLang').value||'auto', to=$id('audioToLang').value||'hi';
-    $id('transcriptionResults').innerHTML='<div class="msg info"><span class="spinner"></span>Translating…</div>';
-    try{
-      const out=await translateTextForAudio(audioTranscript,from,to);
-      window.translatedAudioTranscript=out;
-      $id('transcriptionResults').innerHTML=`<div class="msg success" style="margin-bottom:8px;">🌐 Translated (${from} → ${to})</div><div style="font-size:12px;color:#555;margin-bottom:8px;">Original:</div><pre style="font-size:12px;color:#a8a49c;white-space:pre-wrap;">${audioTranscript}</pre><div style="font-size:12px;color:#555;margin:8px 0;">Translated:</div><div style="font-size:13px;">${out}</div>`;
-    }catch(e){ $id('transcriptionResults').innerHTML=`<div class="msg error">❌ ${e.message}</div>`; }
-  }
-
-  async function transcribeAudioWithSpeechAPI(){
-    if(!audioFile){ showToast('Upload an audio file first','warning'); return; }
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){
-      showToast('Speech Recognition not supported. Use Chrome or Edge.','warning');
-      return;
-    }
-    const langCode=$id('audioFromLang').value||'en';
-    const locale=langToLocale(langCode==='auto'?'en':langCode);
-    $id('audioAnalysis').innerHTML='<div class="msg info"><span class="spinner"></span>Preparing transcription…</div>';
-    $id('transcriptionResults').innerHTML='<div class="msg info"><span class="spinner"></span>Listening… Play audio near your microphone or through speakers.</div>';
-    if(!audioElement){
-      const u=URL.createObjectURL(audioFile);
-      audioElement=new Audio(u);
-      audioElement.onended=()=>{ isPlaying=false; $id('playPauseBtn').textContent='▶ Play'; };
-    }
-    const rec=new SR();
-    rec.continuous=true; rec.interimResults=true;
-    rec.lang=locale;
-    let finalText='';
-    rec.onresult=(e)=>{
-      let interim='';
-      for(let i=e.resultIndex;i<e.results.length;i++){
-        const t=e.results[i][0].transcript;
-        if(e.results[i].isFinal) finalText+=t+' '; else interim+=t;
-      }
-      $id('transcriptionResults').innerHTML=
-        `<div class="msg info" style="margin-bottom:8px;"><span class="spinner"></span>Transcribing…</div>`+
-        (finalText?`<div style="font-size:13px;margin-bottom:8px;">${finalText}</div>`:'')+
-        (interim?`<div class="text-dim" style="font-size:12px;font-style:italic;">${interim}</div>`:'');
-    };
-    rec.onend=()=>{
-      audioElement.pause(); isPlaying=false; $id('playPauseBtn').textContent='▶ Play';
-      if(wavesurfer) try{ wavesurfer.stop(); }catch(ex){}
-      if(finalText.trim()){
-        audioTranscript=finalText.trim();
-        displayTranscriptionResults(audioTranscript);
-        $id('audioAnalysis').innerHTML=`<div class="msg success">✅ Transcription done! Words: ${audioTranscript.split(' ').filter(Boolean).length}</div>`;
-      }else{
-        $id('audioAnalysis').innerHTML='<div class="msg warning">⚠️ No speech detected. Ensure audio plays through speakers near the microphone.</div>';
-        $id('transcriptionResults').innerHTML='<div class="msg warning">⚠️ No text captured. Try playing the audio louder or use the Analyze button for audio stats.</div>';
-      }
-    };
-    rec.onerror=(ev)=>{
-      audioElement.pause(); isPlaying=false; $id('playPauseBtn').textContent='▶ Play';
-      $id('audioAnalysis').innerHTML=`<div class="msg error">❌ Mic error: ${ev.error}</div>`;
-    };
-    rec.start();
-    try{
-      await audioElement.play();
-      isPlaying=true; $id('playPauseBtn').textContent='⏸ Pause';
-      if(wavesurfer) try{ wavesurfer.play(); }catch(ex){}
-    }catch(ex){
-      showToast('Could not auto-play audio: '+ex.message+'. Press Play manually.','warning');
-    }
-    audioElement.onended=()=>{
-      isPlaying=false; $id('playPauseBtn').textContent='▶ Play';
-      if(wavesurfer) try{ wavesurfer.stop(); }catch(ex){}
-      setTimeout(()=>rec.stop(),500);
-    };
-  }
-
-  function downloadAudioTranscript(){
-    if(!audioTranscript){ showToast('Transcribe first','warning'); return; }
-    const content=window.translatedAudioTranscript
-      ?`ORIGINAL:\n${audioTranscript}\n\nTRANSLATED:\n${window.translatedAudioTranscript}`
-      :audioTranscript;
-    downloadTxt(window.translatedAudioTranscript?'audio_transcript_translated.txt':'audio_transcript.txt',content);
-  }
-
-  function toggleAudioPlayback(){ isPlaying?pauseAudio():playAudio(); }
-  function playAudio(){
-    if(!audioElement) return;
-    audioElement.play().catch(e=>showToast('Playback error: '+e.message,'error'));
-    isPlaying=true; $id('playPauseBtn').textContent='⏸ Pause';
-    if(wavesurfer) try{ wavesurfer.play(); }catch(e){}
-  }
-  function pauseAudio(){
-    if(!audioElement) return;
-    audioElement.pause(); isPlaying=false; $id('playPauseBtn').textContent='▶ Play';
-    if(wavesurfer) try{ wavesurfer.pause(); }catch(e){}
-  }
-  function stopAudioPlayback(){
-    if(!audioElement) return;
-    audioElement.pause(); audioElement.currentTime=0; isPlaying=false;
-    $id('playPauseBtn').textContent='▶ Play';
-    if(wavesurfer) try{ wavesurfer.stop(); }catch(e){}
-  }
-  function restartAudioPlayback(){
-    if(!audioElement) return;
-    audioElement.currentTime=0;
-    if(isPlaying){ audioElement.play(); if(wavesurfer) try{ wavesurfer.play(); }catch(e){} }
-  }
-
-  // ─── VIDEO ───
-  let subtitleSegments=[];
-
-  function handleVideoUpload(e){
-    const f=e.target.files[0]; if(!f) return;
-    try{
-      const url=URL.createObjectURL(f);
-      const v=$id('previewVideo'); v.src=url; v.load();
-      subtitleSegments=[]; renderSubtitleEditor();
-      $id('subtitleEditor').innerHTML='<div class="msg success">Video loaded! Use Transcribe to capture audio.</div>';
-    }catch(err){ showToast('Video upload failed: '+err.message,'error'); }
-  }
-
-  function loadVideoFromLink(){
-    const link=$id('videoLink').value.trim();
-    if(!link){ showToast('Enter a video link','warning'); return; }
-    $id('subtitleEditor').innerHTML='<div class="msg warning">⚠️ YouTube/Vimeo links need server-side extraction. Please upload a video file directly.</div>';
-    $id('videoLink').value='';
-  }
-
-  let videoRec=null;
-  function startVideoTranscription(){
-    const v=$id('previewVideo');
-    if(!v.src||v.src===window.location.href){ showToast('Load a video file first','warning'); return; }
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){ showToast('SpeechRecognition not supported in this browser. Use Chrome/Edge.','error'); return; }
-    subtitleSegments=[];
-    if(videoRec){ videoRec.stop(); videoRec=null; }
-    const rec=new SR();
-    rec.continuous=true; rec.interimResults=false;
-    // Use video-specific language selector
-    const vidLang=$id('videoFromLang')?$id('videoFromLang').value:'en';
-    rec.lang=langToLocale(vidLang);
-    let seq=0;
-    rec.onresult=(e)=>{
-      for(let i=0;i<e.results.length;i++){
-        const r=e.results[i];
-        if(r.isFinal){
-          const ct=v.currentTime||0;
-          subtitleSegments.push({id:++seq,startMS:Math.round(ct*1000),endMS:Math.round((ct+3)*1000),text:r[0].transcript.trim()});
-          renderSubtitleEditor();
-        }
-      }
-    };
-    rec.onerror=(ev)=>showToast('Speech error: '+ev.error,'error');
-    rec.onend=()=>{ videoRec=null; };
-    rec.start(); videoRec=rec;
-    v.play().catch(()=>{});
-    $id('subtitleEditor').innerHTML='<div class="msg info">🎙️ Transcription active — audio must play through speakers near your microphone.</div>';
-  }
-
-  function stopVideoTranscription(){
-    if(videoRec){ videoRec.stop(); videoRec=null;
-      $id('subtitleEditor').innerHTML=subtitleSegments.length
-        ?'<div class="msg success">Stopped. Edit subtitles and download below.</div>'
-        :'<div class="msg warning">No audio captured. Play louder or check mic permissions.</div>';
-    }
-  }
-
-  function extractOCR(){
-    const v=$id('previewVideo');
-    if(!v||!v.src){ showToast('Load video first','warning'); return; }
-    try{
-      const canvas=document.createElement('canvas');
-      canvas.width=v.videoWidth||640; canvas.height=v.videoHeight||480;
-      canvas.getContext('2d').drawImage(v,0,0,canvas.width,canvas.height);
-      Tesseract.recognize(canvas,'eng').then(({data})=>{
-        const txt=data.text.trim();
-        if(txt){
-          subtitleSegments.push({id:subtitleSegments.length+1,startMS:Date.now(),endMS:Date.now()+3000,text:txt});
-          renderSubtitleEditor();
-          showToast('OCR done: '+txt.slice(0,60),'success');
-        }else{ showToast('No text detected in frame','warning'); }
-      }).catch(e=>showToast('OCR failed: '+e.message,'error'));
-    }catch(err){ showToast('OCR setup failed: '+err.message,'error'); }
-  }
-
-  function renderSubtitleEditor(){
-    const el=$id('subtitleEditor');
-    if(!subtitleSegments.length){ el.innerText='No subtitles yet.'; return; }
-    el.innerHTML='';
-    subtitleSegments.forEach((s,i)=>{
-      const div=document.createElement('div'); div.className='subtitle-segment';
-      const sec=s.startMS/1000;
-      const m=Math.floor(sec/60),sec2=Math.floor(sec%60);
-      const ts=`${String(m).padStart(2,'0')}:${String(sec2).padStart(2,'0')}`;
-      div.innerHTML=`<div style="font-size:11px;color:#555;font-family:var(--font-cond);letter-spacing:0.1em;">SEGMENT ${i+1} — ${ts}</div><div contenteditable="true" style="margin-top:6px;">${s.text}</div>`;
-      el.appendChild(div);
-    });
-  }
-
-  function toSrtTime(ms){
-    const h=Math.floor(ms/3600000);
-    const m=Math.floor((ms%3600000)/60000);
-    const s=Math.floor((ms%60000)/1000);
-    const ms3=ms%1000;
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms3).padStart(3,'0')}`;
-  }
-
-  async function translateSubtitleText(text,to){
-    try{
-      const url='https://api.allorigins.win/raw?url='+encodeURIComponent(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${to}&dt=t&q=${encodeURIComponent(text)}`);
-      const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
-      return parseGoogleTranslate(await res.json())||text;
-    }catch(e){ return text; }
-  }
-
-  async function generateTranslatedSubtitles(to,fmt){
-    if(fmt==='srt'){
-      let s='';
-      for(let i=0;i<subtitleSegments.length;i++){
-        const seg=subtitleSegments[i];
-        const txt=to==='en'?seg.text:await translateSubtitleText(seg.text,to);
-        s+=`${i+1}\n${toSrtTime(seg.startMS)} --> ${toSrtTime(seg.endMS)}\n${txt}\n\n`;
-      }
-      return s;
-    }else{
-      let s='WEBVTT\n\n';
-      for(const seg of subtitleSegments){
-        const txt=to==='en'?seg.text:await translateSubtitleText(seg.text,to);
-        // VTT uses dot instead of comma for milliseconds
-        s+=`${toSrtTime(seg.startMS).replace(',','.')} --> ${toSrtTime(seg.endMS).replace(',','.')}\n${txt}\n\n`;
-      }
-      return s;
-    }
-  }
-
-  async function downloadSRT(){
-    if(!subtitleSegments.length){ showToast('No subtitles to download','warning'); return; }
-    const to=$id('subtitleLang').value||'en';
-    const content=await generateTranslatedSubtitles(to,'srt');
-    downloadTxt('subtitles.srt',content);
-  }
-
-  async function downloadVTT(){
-    if(!subtitleSegments.length){ showToast('No subtitles to download','warning'); return; }
-    const to=$id('subtitleLang').value||'en';
-    const content=await generateTranslatedSubtitles(to,'vtt');
-    downloadTxt('subtitles.vtt',content);
-  }
-
-  // ─── TOAST / NOTIFICATION ───
-  function showToast(msg,type='info'){
-    // Remove existing toast
-    const existing=document.querySelector('.toast'); if(existing) existing.remove();
-    const t=document.createElement('div');
-    t.className='msg '+type+' toast';
-    t.style.cssText='position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:9999;min-width:240px;max-width:calc(100vw - 32px);text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.6);font-family:var(--font-cond);font-size:13px;letter-spacing:0.1em;';
-    t.textContent=msg;
-    document.body.appendChild(t);
-    setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity 0.4s'; setTimeout(()=>t.remove(),400); },3000);
-  }
-
-  // ─── COMPAT CHECK ───
-  function checkBrowserCompatibility(){
-    const issues=[];
-    if(!window.SpeechRecognition&&!window.webkitSpeechRecognition) issues.push('Voice features limited (use Chrome/Edge)');
-    if(!window.FileReader) issues.push('File upload limited');
-    if(!window.AudioContext&&!window.webkitAudioContext) issues.push('Audio processing limited');
-    if(issues.length){
-      const w=$id('compatWarning');
-      w.innerHTML=`<div style="padding:10px 16px;"><div class="msg warning">${issues.join(' · ')}</div></div>`;
-      w.style.display='block';
-    }
-  }
-
-  // ─── INIT ───
-  document.addEventListener('DOMContentLoaded',()=>{
-    $id('y').textContent=new Date().getFullYear();
+  document.addEventListener('DOMContentLoaded', () => {
+    $id('y').textContent = new Date().getFullYear();
     checkBrowserCompatibility();
-    // Set PDF.js worker
-    if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.worker.min.js';
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.worker.min.js';
+    }
   });
 
-  // ─── EXPOSE ALL TO WINDOW (for inline onclick) ───
-  window.translateText=translateText; window.grammarFix=grammarFix; window.rewriteStyle=rewriteStyle;
-  window.startListening=startListening; window.stopListening=stopListening;
-  window.startTranslateLive=startTranslateLive; window.stopTranslateLive=stopTranslateLive;
-  window.speakText=speakText; window.clearInput=clearInput; window.copyOut=copyOut;
-  window.downloadTxt=downloadTxt; window.setTone=setTone;
-  window.handleDocUpload=handleDocUpload; window.translateDocument=translateDocument;
-  window.downloadTranslatedPDF=downloadTranslatedPDF;
-  window.handleAudioUpload=handleAudioUpload;
-  window.transcribeAudioWithSpeechAPI=transcribeAudioWithSpeechAPI;
-  window.transcribeAudioAnalysis=transcribeAudioAnalysis;
-  window.translateAudioFile=translateAudioFile; window.downloadAudioTranscript=downloadAudioTranscript;
-  window.toggleAudioPlayback=toggleAudioPlayback; window.stopAudioPlayback=stopAudioPlayback;
-  window.restartAudioPlayback=restartAudioPlayback;
-  window.handleVideoUpload=handleVideoUpload; window.loadVideoFromLink=loadVideoFromLink;
-  window.startVideoTranscription=startVideoTranscription; window.stopVideoTranscription=stopVideoTranscription;
-  window.extractOCR=extractOCR; window.renderSubtitleEditor=renderSubtitleEditor;
-  window.downloadSRT=downloadSRT; window.downloadVTT=downloadVTT; window.toSrtTime=toSrtTime;
+  // Global window exposure for HTML onclick handlers
+  window.translateText = translateText;
+  window.cancelTextTranslation = cancelTextTranslation;
+  window.retryTextTranslation = retryTextTranslation;
+  window.grammarFix = grammarFix;
+  window.rewriteStyle = rewriteStyle;
+  window.setTone = setTone;
+  window.startListening = startListening;
+  window.stopListening = stopListening;
+  window.clearInput = clearInput;
+  window.copyOut = copyOut;
+  window.speakText = speakText;
+  window.downloadTxt = downloadTxt;
+
+  window.startTranslateLive = startTranslateLive;
+  window.stopTranslateLive = stopTranslateLive;
+  window.clearLiveTranscript = clearLiveTranscript;
+
+  window.handleAudioUpload = handleAudioUpload;
+  window.transcribeAudioFile = transcribeAudioFile;
+  window.transcribeAudioAnalysis = transcribeAudioAnalysis;
+  window.translateAudioTranscript = translateAudioTranscript;
+  window.downloadAudioTranscript = downloadAudioTranscript;
+  window.toggleAudioPlayback = toggleAudioPlayback;
+  window.stopAudioPlayback = stopAudioPlayback;
+  window.restartAudioPlayback = restartAudioPlayback;
+
+  window.handleDocUpload = handleDocUpload;
+  window.translateDocument = translateDocument;
+  window.cancelDocTranslation = cancelDocTranslation;
+  window.downloadTranslatedPDF = downloadTranslatedPDF;
+  window.downloadTranslatedDocTxt = downloadTranslatedDocTxt;
+
+  window.handleVideoUpload = handleVideoUpload;
+  window.loadVideoFromLink = loadVideoFromLink;
+  window.startVideoTranscription = startVideoTranscription;
+  window.stopVideoTranscription = stopVideoTranscription;
+  window.extractOCR = extractOCR;
+  window.translateSubtitles = translateSubtitles;
+  window.downloadSRT = downloadSRT;
+  window.downloadVTT = downloadVTT;
+  window.addNewSubtitleSegment = addNewSubtitleSegment;
 </script>
 </body>
 </html>
